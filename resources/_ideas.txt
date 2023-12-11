@@ -1,0 +1,19 @@
+Random ideas go here. It doesn't necessarily have to be feasable, just any idea
+
+=====
+Import / export configurations
+
+You can import a starting grid to skip the customization process
+You can export the current state of the grid for further use or customization
+
+Could make the files in the format like "  c cc  cc c " to allow for easier editing
+Check for correct format before trying to process it -> all lines should be same length
+
+=====
+GUI "level editor"
+
+You can edit a custom starting grid configuration using a GUI to be able to make much bigger boards
+
+Automatically export configuration to file
+
+=====
