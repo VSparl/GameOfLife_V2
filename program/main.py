@@ -69,6 +69,15 @@ def get_starting_position(rows: int, cols: int) -> list[list[bool]]:
     return local_board
 
 
+def generate_random_board(rows: int, cols: int) -> list[list[bool]]:
+    """Generates a random starting configuration of a board.
+
+    Arguments specify the size of the board.
+    A cell has a 33% chance to contain a counter.
+    """
+    pass
+
+
 def print_board(local_board):
     """Print the current state of the board.
 
@@ -81,11 +90,7 @@ def print_board(local_board):
         print()  # New line
 
 
-def main():
-    """Docstring so the linter shuts up."""
+if __name__ == "__main__":
     display_welcome()
     global_board = get_starting_position(30, 20)
     print_board(global_board)
-
-
-main()
