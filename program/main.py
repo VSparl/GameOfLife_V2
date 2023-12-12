@@ -1,5 +1,6 @@
 """Making a module docstring so my linter shuts up"""
 import msvcrt
+import random
 from colorama import Back
 
 
@@ -18,7 +19,7 @@ def controlled_input(input_string: str, max_len: int) -> list:
 
     WARNING: This only works on Windows devices.
     """
-    input_chars: list = []
+    input_chars: list[str] = []
     print(input_string, end='', flush=True)
     while True:
         if msvcrt.kbhit():  # React to keyboard input
@@ -52,7 +53,7 @@ def controlled_input(input_string: str, max_len: int) -> list:
     return input_chars
 
 
-def get_starting_position(rows: int, cols: int) -> list[list[bool]]:
+def get_starting_position(height: int, width: int) -> list[list[bool]]:
     """Get the initial board status from the user.
 
     Return the board as a nested list of rows containing
@@ -60,8 +61,8 @@ def get_starting_position(rows: int, cols: int) -> list[list[bool]]:
     """
     local_board: list[list[bool]] = []
 
-    for i in range(rows):
-        usr_input: str = controlled_input(f"enter row No. {i + 1}: ", cols)
+    for i in range(height):
+        usr_input: list[str] = controlled_input(f"Enter row No. {i + 1}: ", width)
         # Turn non-space characters into True vaules and spaces into False
         processed_input = [not char == ' ' for char in usr_input]
         local_board.append(processed_input)
@@ -75,7 +76,13 @@ def generate_random_board(rows: int, cols: int) -> list[list[bool]]:
     Arguments specify the size of the board.
     A cell has a 33% chance to contain a counter.
     """
-    pass
+    local_board: list[list[bool]] = []
+
+    for _ in range(rows):
+        processed_input = [random.choice([True, False, False]) for _ in range(cols)]
+        local_board.append(processed_input)
+
+    return local_board
 
 
 def print_board(local_board):
@@ -92,5 +99,5 @@ def print_board(local_board):
 
 if __name__ == "__main__":
     display_welcome()
-    global_board = get_starting_position(30, 20)
+    global_board = generate_random_board(20, 30)
     print_board(global_board)
