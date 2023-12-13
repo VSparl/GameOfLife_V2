@@ -92,20 +92,41 @@ def generate_random_board(height: int, width: int) -> list[list[bool]]:
     return local_board
 
 
-def count_neighbors(board, row, col):
+def check_validity(board: list[list[bool]]) -> bool:
+    """Check if the formatting is valid in a starting configuration file.
+
+    Count the different lengths of rows on a board.
+    All rows should be the same length.
+    """
+    last_col = 0
+    diff_cols = 1
+    for _, col in enumerate(board):
+        curr_col = len(col)
+
+        if curr_col != last_col:
+            diff_cols += 1
+
+        last_col = curr_col
+
+    return diff_cols == 1
+
+
+def count_neighbors(board: list[list[bool]], row: int, col: int) -> int:
     """Count the number of live neighbors for a given cell."""
-    neighbors = [(row - 1, col - 1), (row - 1, col), (row - 1, col + 1),
+    neighbors: list = [(row - 1, col - 1), (row - 1, col), (row - 1, col + 1),
                  (row, col - 1),                     (row, col + 1),
                  (row + 1, col - 1), (row + 1, col), (row + 1, col + 1)]
 
-    live_neighbors = 0
+    live_neighbors: int = 0
     for i, j in neighbors:
+        #           counter is in a valid position          cell is alive
         if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j]:
             live_neighbors += 1
 
     return live_neighbors
 
-def update_board(board):
+
+def update_board(board: list[list[bool]]) -> list[list[bool]]:
     """Update the board according to the rules of the Game of Life."""
     # Initialize a board where all cells are dead
     new_board: list[list[bool]] = [[False] * len(board[0]) for _ in range(len(board))]
@@ -122,21 +143,23 @@ def update_board(board):
     return new_board
 
 
-def print_board(local_board):
+def print_board(local_board: list[list[bool]], character: str=' ') -> None:
     """Print the current state of the board.
 
     Colorama is used to draw colored characters.
-    Live cells are displayed as green."""
+    Live cells are displayed as green.
+    The specified character is used to fill the cells, default is empty.
+    """
     live_cells = 0
 
     for row in local_board:
         for cell in row:
             # Color only if cell is alive
             if cell:
-                print(f"{Back.GREEN}▯ {Back.RESET}", end='')
+                print(f"{Back.GREEN}{character} {Back.RESET}", end='')
                 live_cells += 1
             else:
-                print("▯ ", end='')
+                print(f"{character} ", end='')
         print()  # New line after row
 
     if live_cells == 0:
@@ -145,7 +168,7 @@ def print_board(local_board):
 
 if __name__ == "__main__":
     display_welcome()
-    global_board = generate_random_board(5, 5)
+    global_board = get_starting_position(20, 20)
     last_board = []
 
     while last_board != global_board:
@@ -154,10 +177,3 @@ if __name__ == "__main__":
         last_board = global_board
         global_board = update_board(global_board)
         sleep(0.2)
-        input()
-
-    print_board(global_board)
-    print("\n" + "-" * 20 + "\n")
-    last_board = global_board
-    global_board = update_board(global_board)
-    sleep(0.2)
