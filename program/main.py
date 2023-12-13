@@ -70,7 +70,7 @@ def get_starting_position(height: int, width: int) -> list[list[bool]]:
     return local_board
 
 
-def generate_random_board(rows: int, cols: int) -> list[list[bool]]:
+def generate_random_board(height: int, width: int) -> list[list[bool]]:
     """Generates a random starting configuration of a board.
 
     Arguments specify the size of the board.
@@ -78,8 +78,8 @@ def generate_random_board(rows: int, cols: int) -> list[list[bool]]:
     """
     local_board: list[list[bool]] = []
 
-    for _ in range(rows):
-        processed_input = [random.choice([True, False, False]) for _ in range(cols)]
+    for _ in range(height):
+        processed_input = [random.choice([True, False, False]) for _ in range(width)]
         local_board.append(processed_input)
 
     return local_board
