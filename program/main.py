@@ -77,7 +77,7 @@ def generate_random_board(height: int=-1, width: int=-1) -> list[list[bool]]:
     """Generates a random starting configuration of a board.
 
     Arguments specify the size of the board.
-    A cell has a 33% chance to contain a counter.
+    A cell has a 25% chance to contain a counter.
 
     If the args are -1 for both height and width, the numbers will be 
     selected so that the game consumes the entire screen.
@@ -87,12 +87,14 @@ def generate_random_board(height: int=-1, width: int=-1) -> list[list[bool]]:
     if (height, width) == (-1, -1):
         # Fill the entire screen
         terminal = os.get_terminal_size()
-        height = terminal.columns
-        width = terminal.lines
+        # Sometimes the size function returns one line too many
+        height = terminal.lines - 1
+        # One cell is 2 chars wide
+        width = terminal.columns // 2
 
 
     for _ in range(height):
-        processed_input = [random.choice([True, False, False]) for _ in range(width)]
+        processed_input = [(random.random() <= 0.25) for _ in range(width)]
         local_board.append(processed_input)
 
     return local_board
