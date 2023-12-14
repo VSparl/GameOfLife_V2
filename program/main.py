@@ -1,6 +1,8 @@
 """Making a module docstring so my linter shuts up"""
 import msvcrt
 import random
+import os
+import sys
 from time import sleep
 from colorama import Back
 
@@ -8,12 +10,6 @@ from colorama import Back
 def display_welcome() -> None:
     """Print some welcome words."""
     print("Welcome to the Game of Life, blah blah blah...")
-
-
-def end_game() -> None:
-    """Finish the game and display some text as the end"""
-    print("Game finished.")
-    quit()
 
 
 def controlled_input(input_string: str, max_len: int) -> list:
@@ -77,13 +73,23 @@ def get_starting_position(height: int, width: int) -> list[list[bool]]:
     return local_board
 
 
-def generate_random_board(height: int, width: int) -> list[list[bool]]:
+def generate_random_board(height: int=-1, width: int=-1) -> list[list[bool]]:
     """Generates a random starting configuration of a board.
 
     Arguments specify the size of the board.
     A cell has a 33% chance to contain a counter.
+
+    If the args are -1 for both height and width, the numbers will be 
+    selected so that the game consumes the entire screen.
     """
     local_board: list[list[bool]] = []
+
+    if (height, width) == (-1, -1):
+        # Fill the entire screen
+        terminal = os.get_terminal_size()
+        height = terminal.columns
+        width = terminal.lines
+
 
     for _ in range(height):
         processed_input = [random.choice([True, False, False]) for _ in range(width)]
@@ -166,14 +172,21 @@ def print_board(local_board: list[list[bool]], character: str=' ') -> None:
         end_game()
 
 
+def end_game() -> None:
+    """Finish the game and display some text as the end"""
+    print("Game finished.")
+    # Exit program with code 0
+    sys.exit(0)
+
+
 if __name__ == "__main__":
     display_welcome()
-    global_board = get_starting_position(20, 20)
+    global_board = generate_random_board()
     last_board = []
 
     while last_board != global_board:
         print_board(global_board)
-        print("\n" + "-" * 20 + "\n")
         last_board = global_board
         global_board = update_board(global_board)
-        sleep(0.2)
+        sleep(0.3)
+        os.system("cls")
