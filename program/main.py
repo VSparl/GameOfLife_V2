@@ -9,7 +9,25 @@ from colorama import Back
 
 def display_welcome() -> None:
     """Print some welcome words."""
+    os.system("cls")
     print("Welcome to the Game of Life, blah blah blah...")
+
+
+def get_starting_position(height: int, width: int) -> list[list[bool]]:
+    """Get the initial board status from the user.
+
+    Return the board as a nested list of rows containing
+    boolean values indicating the state of the cell.
+    """
+    local_board: list[list[bool]] = []
+
+    for i in range(height):
+        usr_input: list[str] = controlled_input(f"Enter row No. {i + 1}: ", width)
+        # Turn non-space characters into True vaules and spaces into False
+        processed_input = [not char == ' ' for char in usr_input]
+        local_board.append(processed_input)
+
+    return local_board
 
 
 def controlled_input(input_string: str, max_len: int) -> list:
@@ -56,23 +74,6 @@ def controlled_input(input_string: str, max_len: int) -> list:
     return input_chars
 
 
-def get_starting_position(height: int, width: int) -> list[list[bool]]:
-    """Get the initial board status from the user.
-
-    Return the board as a nested list of rows containing
-    boolean values indicating the state of the cell.
-    """
-    local_board: list[list[bool]] = []
-
-    for i in range(height):
-        usr_input: list[str] = controlled_input(f"Enter row No. {i + 1}: ", width)
-        # Turn non-space characters into True vaules and spaces into False
-        processed_input = [not char == ' ' for char in usr_input]
-        local_board.append(processed_input)
-
-    return local_board
-
-
 def generate_random_board(height: int=-1, width: int=-1) -> list[list[bool]]:
     """Generates a random starting configuration of a board.
 
@@ -100,6 +101,28 @@ def generate_random_board(height: int=-1, width: int=-1) -> list[list[bool]]:
     return local_board
 
 
+def import_from_file(filepath: str) -> list[list[bool]]:
+    """Turns a file into a proper list and checks the validity of the board."""
+    local_board = []
+    line = True
+
+    with open(filepath, "r", encoding="utf-8") as fp:
+        print("file found")
+        while line:
+            line = fp.readline().strip("\n")
+            # Convert char to bool value
+            processed_line = [not char == ' ' for char in line]
+            if processed_line:
+                # Is not empty
+                local_board.append(processed_line)
+
+    if check_validity(local_board):
+        return local_board
+
+    print("validity check not passed")
+    return False
+
+
 def check_validity(board: list[list[bool]]) -> bool:
     """Check if the formatting is valid in a starting configuration file.
 
@@ -107,8 +130,8 @@ def check_validity(board: list[list[bool]]) -> bool:
     All rows should be the same length.
     """
     last_col = 0
-    diff_cols = 1
-    for _, col in enumerate(board):
+    diff_cols = 0
+    for _, col in enumerate(board[:-1]):
         curr_col = len(col)
 
         if curr_col != last_col:
@@ -120,15 +143,20 @@ def check_validity(board: list[list[bool]]) -> bool:
 
 
 def count_neighbors(board: list[list[bool]], row: int, col: int) -> int:
-    """Count the number of live neighbors for a given cell."""
-    neighbors: list = [(row - 1, col - 1), (row - 1, col), (row - 1, col + 1),
+    """Count the number of live neighbors for a given cell.
+
+    Iterate over relative positions of neighbour cells
+    and check the state of the counters inside.
+    """
+    # Relative position of the cells neighbours
+    neighbour_rel_pos: list = [(row - 1, col - 1), (row - 1, col), (row - 1, col + 1),
                  (row, col - 1),                     (row, col + 1),
                  (row + 1, col - 1), (row + 1, col), (row + 1, col + 1)]
 
     live_neighbors: int = 0
-    for i, j in neighbors:
+    for i, j in neighbour_rel_pos:
         #           counter is in a valid position          cell is alive
-        if 0 <= i < len(board) and 0 <= j < len(board[0]) and board[i][j]:
+        if (0 <= i < len(board) and 0 <= j < len(board[0])) and board[i][j]:
             live_neighbors += 1
 
     return live_neighbors
@@ -183,7 +211,20 @@ def end_game() -> None:
 
 if __name__ == "__main__":
     display_welcome()
-    global_board = generate_random_board()
+    # Get filename to import from command line args
+    FILENAME: str = sys.argv[1] if len(sys.argv) > 1 else False
+    # Initialize board to false to check which configuration works
+
+    if FILENAME:
+        try:
+            global_board = import_from_file(sys.argv[1])
+
+        except FileNotFoundError:
+            # If file not found, generate a random startig configuration
+            global_board = generate_random_board()
+    else:
+        global_board = generate_random_board()
+
     last_board = []
 
     while last_board != global_board:
