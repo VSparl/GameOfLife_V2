@@ -2,6 +2,7 @@
 import msvcrt
 import sys
 
+
 def controlled_input(input_string: str, max_len: int) -> list:
     """Input function but with max length
 
@@ -13,30 +14,31 @@ def controlled_input(input_string: str, max_len: int) -> list:
     WARNING: This only works on Windows devices.
     """
     input_chars: list[str] = []
-    print(input_string, end='', flush=True)
+    print(input_string, end="", flush=True)
+
     while True:
         if msvcrt.kbhit():  # React to keyboard input
             # Get typed character from keyboard and decode it
-            char = msvcrt.getch().decode('utf-8')
+            char = msvcrt.getch().decode("utf-8")
             # Handle all exceptions and special keys
-            if char == '\x03':  # Ctrl+C
+            if char == "\x03":  # Ctrl+C
                 # Simulate same behaviour of "regular" Ctrl+C
                 raise KeyboardInterrupt
 
-            if char == '\x08':  # Backspace key
+            if char == "\x08":  # Backspace key
                 if input_chars:
                     input_chars.pop()
                     # Move cursor back, overwrite character with a space
-                    print('\b \b', end='', flush=True)
+                    print("\b \b", end="", flush=True)
                 continue
 
-            if char == '\r':  # Enter key
+            if char == "\r":  # Enter key
                 # Function returns automatically
                 continue
 
             # Add typed character to list and print it to the screen
             input_chars.append(char)
-            print(char, end='', flush=True)
+            print(char, end="", flush=True)
 
             if len(input_chars) >= max_len:
                 # Desired length reached
@@ -45,12 +47,14 @@ def controlled_input(input_string: str, max_len: int) -> list:
     print()
     return input_chars
 
+
 FILENAME: str = input("Enter filename (without extension): ")
 WIDTH: int = int(input("How wide? (chars) "))
 HEIGHT: int = int(input("How high? (chars) "))
 
 with open(f"{FILENAME}.gol", "w", encoding="utf-8") as fp:
     for i in range(HEIGHT):
+        # Format and write chars entered by user
         fp.write("".join(controlled_input(f"Enter line No. {i + 1}: ", WIDTH)))
 
         if i != HEIGHT - 1:

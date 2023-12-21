@@ -142,6 +142,24 @@ def check_validity(board: list[list[bool]]) -> bool:
     return diff_cols == 1
 
 
+def create_level(name: str) -> None:
+    """Create a level according to user specifications.
+    
+    The new level will be saved in a .gol file as characters.
+    """
+    width: int = int(input("How wide? (chars) "))
+    height: int = int(input("How high? (chars) "))
+
+    with open(f"{name}", "w", encoding="utf-8") as fp:
+        for i in range(height):
+            # Format and write chars entered by user
+            fp.write("".join(controlled_input(f"Enter line No. {i + 1}: ", width)))
+
+            if i != height - 1:
+                # Don't write last newline
+                fp.write("\n")
+
+
 def count_neighbors(board: list[list[bool]], row: int, col: int) -> int:
     """Count the number of live neighbors for a given cell.
 
@@ -220,8 +238,13 @@ if __name__ == "__main__":
             global_board = import_from_file(sys.argv[1])
 
         except FileNotFoundError:
-            # If file not found, generate a random startig configuration
-            global_board = generate_random_board()
+            # Start level editor
+            print("Your file was not found. The level editor will be started ",
+                  "so you can make your own starting configuration.")
+            create_level(FILENAME)
+            # TODO restart automatically
+            input("Restart the program to see your changes.")
+            sys.exit(0)
     else:
         global_board = generate_random_board()
 
