@@ -6,6 +6,8 @@ import sys
 from time import sleep
 from colorama import Back, Fore
 
+BOARDS_PATH = os.path.join("..", "boards")  # Path to where the boards are stored
+
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
@@ -15,6 +17,54 @@ class FileInvalidError(Exception):
         "All characters must be printable and all lines must have the same length."):
         self.message = message
         super().__init__(self.message)
+
+
+def handle_special_args() -> None:
+    """Handle special arg that starts with a dash (-)
+
+    Only one argument should be provided with the command, any others
+    will be ignored. A list of special arguments is found below:
+
+    -h to show help information and explain args.
+    -l to list boards saved in the boards folder.
+    -c to clear the entire boards folder (requires confirmation).
+    """
+    if len(sys.argv) == 1:
+        # No args to handle
+        return
+
+    arg = sys.argv[1]  # Only first arg is looked at
+    if arg == "-h":
+        print("""
+Usage: py main.py [arg]\n
+Special args can be the following:
+-h to show this help message.
+-l to list the saved boards using the board creator (standalone program or module).
+-c to clear your boards folder.
+-f to mark the board specified in the next argument as a favourite.
+    Favourites can only be deleted manually in the file explorer.""")
+        sys.exit(0)
+
+    if arg == "-l":
+        print("Saved boards in your boards folder:\n")
+        boards: list[str] = os.listdir(BOARDS_PATH)
+        boards.sort()
+        print("\n".join(boards))
+        # Show absolute path of boards folder for easy access
+        print(f"\nYour boards are saved here: {os.path.abspath(BOARDS_PATH)}")
+        sys.exit(0)
+
+    if arg == "-c":
+        if input("Are you sure you want to DELETE all of your saved boards? [y/n] ").lower() == "y":
+            for file in os.listdir(BOARDS_PATH):
+                os.remove(os.path.join(BOARDS_PATH, file))
+
+            print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}Files deleted.")
+        sys.exit(0)
+
+    if arg == "-f":
+        pass
+        # TODO implement favourites function, see docstring
 
 
 def display_welcome() -> None:
@@ -52,6 +102,12 @@ def get_start_board() -> list[list[bool]]:
 
         except FileInvalidError:
             print(f"{Fore.RED}ERROR: {Fore.RESET}File invalid. Try again with another file.")
+            if input("Would you like to delete the file? [y/n] ").lower() == "y":
+                # Delete invalid file
+                if filename[-4:] != ".gol":
+                    filename += ".gol"
+                os.remove(os.path.join(BOARDS_PATH, filename))
+                print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}{filename} deleted successfully")
             sys.exit(1)
 
     else:
@@ -85,6 +141,8 @@ def controlled_input(input_string: str, max_len: int) -> list:
     Automatically returns and goes on to the next line when the specified
     input length has been reached.
     Still allows for Ctrl+C to interrupt the program.
+    Special characters like ö, ñ etc. will be shown with a placeholder (�)
+    as they are not UTF-8.
     This function was written with the help of ChatGPT.
 
     WARNING: This only works on Windows devices.
@@ -94,7 +152,7 @@ def controlled_input(input_string: str, max_len: int) -> list:
     while True:
         if msvcrt.kbhit():  # React to keyboard input
             # Get typed character from keyboard and decode it
-            char = msvcrt.getch().decode("utf-8")
+            char = msvcrt.getch().decode("utf-8", "replace")
             # Handle all exceptions and special keys
             if char == "\x03":  # Ctrl+C
                 # Simulate same behaviour of "regular" Ctrl+C
@@ -158,7 +216,7 @@ def import_from_file(filepath: str) -> list[list[bool]]:
     if filepath[-4:] != ".gol":
         filepath += ".gol"
 
-    with open(os.path.join("..", "boards", filepath), "r", encoding="utf-8") as fp:
+    with open(os.path.join(BOARDS_PATH, filepath), "r", encoding="utf-8") as fp:
         print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File found, processing...")
         sleep(1.2)
 
@@ -202,23 +260,24 @@ def create_level(name: str) -> None:
     The new level will be saved in a .gol file as characters.
     """
     while True:
-        width: int = int(input("How wide? (chars) "))
-        if width <= 1:
-            print("Please enter a value of at least two characters.\n")
+        width: str = input("Enter board width (chars): ")
+        if not width.isnumeric() or int(width) <= 1:
+            print("Minimum value is 2. Please only write numbers\n")
             continue
 
-        height: int = int(input("How high? (chars) "))
-        if height <= 1:
-            print("Please enter a value of at least two characters.\n")
+        height: str = input("Enter board height (chars): ")
+        if not height.isnumeric() or int(height) <= 1:
+            print("Minimum value is 2. Please only write numbers\n")
             continue
 
+        height, width = int(height), int(width)
         break
 
     # Add file extension if not present
     if name[-4:] != ".gol":
         name += ".gol"
 
-    with open(os.path.join("..", "boards", name), "w", encoding="utf-8") as fp:
+    with open(os.path.join(BOARDS_PATH, name), "w", encoding="utf-8") as fp:
         for i in range(height):
             # Format and write chars entered by user
             fp.write(
@@ -302,6 +361,7 @@ def end_game() -> None:
 
 
 if __name__ == "__main__":
+    handle_special_args()
     display_welcome()
     global_board = get_start_board()
 
