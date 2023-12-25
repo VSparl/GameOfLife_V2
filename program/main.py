@@ -28,6 +28,10 @@ def handle_special_args() -> None:
     -h to show help information and explain args.
     -l to list boards saved in the boards folder.
     -c to clear the entire boards folder (requires confirmation).
+    -f to mark board after -f arg as favourite in special folder.
+        Favourite files can only be deleted manually through
+        e.g. the File Explorer.
+    -n to override file specified after -n arg.
     """
     if len(sys.argv) == 1:
         # No args to handle
@@ -42,11 +46,12 @@ Special args can be the following:
 -l to list the saved boards using the board creator (standalone program or module).
 -c to clear your boards folder.
 -f to mark the board specified in the next argument as a favourite.
-    Favourites can only be deleted manually in the file explorer.""")
+    Favourites can only be deleted manually in the file explorer.
+-n to override the file specified after the -n argument""")
         sys.exit(0)
 
     if arg == "-l":
-        print("Saved boards in your boards folder:\n")
+        print("Saved boards:\n")
         boards: list[str] = os.listdir(BOARDS_PATH)
         boards.sort()
         print("\n".join(boards))
@@ -66,6 +71,10 @@ Special args can be the following:
         pass
         # TODO implement favourites function, see docstring
 
+    if arg == "-n":
+        pass
+        # TODO override filename after -n and enter board configurator
+
 
 def display_welcome() -> None:
     """Print some welcome words."""
@@ -80,6 +89,7 @@ def get_start_board() -> list[list[bool]]:
 
     if filename:
         try:
+            # Try to import the file from the specified filepath
             local_board = import_from_file(sys.argv[1])
 
         except FileNotFoundError:
@@ -89,16 +99,7 @@ def get_start_board() -> list[list[bool]]:
                 "your own board. \n")
 
             # Prompt user to create their own board with the filename
-            create_level(filename)
-
-            print("\nThe program needs to restart to apply your changes")
-            for n in range(3):
-                print(f"{Fore.YELLOW}WARNING: {Fore.RESET}Restarting in {3 - n}...", end="\r")
-                sleep(1)
-
-                # Restart program with same args
-                # TODO Program remains stuck here after completing, requres Enter to "wake up" again
-                os.execv(sys.executable, [sys.executable] + sys.argv)
+            local_board = manually_create_level(filename)
 
         except FileInvalidError:
             print(f"{Fore.RED}ERROR: {Fore.RESET}File invalid. Try again with another file.")
@@ -108,6 +109,7 @@ def get_start_board() -> list[list[bool]]:
                     filename += ".gol"
                 os.remove(os.path.join(BOARDS_PATH, filename))
                 print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}{filename} deleted successfully")
+
             sys.exit(1)
 
     else:
@@ -116,26 +118,7 @@ def get_start_board() -> list[list[bool]]:
     return local_board
 
 
-def get_starting_position(height: int, width: int) -> list[list[bool]]:
-    """Get the initial board status from the user.
-
-    Return the board as a nested list of rows containing
-    boolean values indicating the state of the cell.
-    """
-    local_board: list[list[bool]] = []
-
-    for i in range(height):
-        usr_input: list[str] = controlled_input(
-            f"Enter row No. {i + 1}: ", width
-        )
-        # Turn non-space characters into True vaules and spaces into False
-        processed_input = [not char == " " for char in usr_input]
-        local_board.append(processed_input)
-
-    return local_board
-
-
-def controlled_input(input_string: str, max_len: int) -> list:
+def controlled_input(input_string: str, max_len: int) -> list[str]:
     """Input function but with max length
 
     Automatically returns and goes on to the next line when the specified
@@ -254,11 +237,16 @@ def check_validity(board: list[list[bool]]) -> bool:
     return diff_cols == 1
 
 
-def create_level(name: str) -> None:
+def manually_create_level(filename: str="") -> list[list[bool]]:
     """Create a level according to user specifications.
 
-    The new level will be saved in a .gol file as characters.
+    If no filename is specified, it will only return the board.
+    The new level will be saved in a .gol file as characters
+    if a filename is specified.
     """
+    local_board: list[list[str]] = []
+
+    # Get parameters for the board from the user
     while True:
         width: str = input("Enter board width (chars): ")
         if not width.isnumeric() or int(width) <= 1:
@@ -273,21 +261,39 @@ def create_level(name: str) -> None:
         height, width = int(height), int(width)
         break
 
-    # Add file extension if not present
-    if name[-4:] != ".gol":
-        name += ".gol"
+    # Set up file-related stuff
+    if filename:  # Do only if config should be saved in a file
+        # Add file extension if not present
+        if filename[-4:] != ".gol":
+            filename += ".gol"
 
-    with open(os.path.join(BOARDS_PATH, name), "w", encoding="utf-8") as fp:
-        for i in range(height):
-            # Format and write chars entered by user
-            fp.write(
-                "".join(controlled_input(f"Enter line No. {i + 1}: ", width))
-            )
+        # If directory doesn't exist yet, create it
+        os.makedirs(BOARDS_PATH, exist_ok=True)
+
+        # Open file to save config in
+        fp = open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8")
+
+    # Actually get and save input
+    for i in range(height):
+        # Format and write chars entered by user
+        line: list[str] = controlled_input(f"Enter line No. {i + 1}: ", width)
+        # Directly convert input to bool values
+        processed_input = [not char == " " for char in line]
+        local_board.append(processed_input)
+
+        if filename:
+            # Include in file if specified
+            fp.write("".join(line))
 
             if i != height - 1:
                 # Don't write last newline
                 fp.write("\n")
-    print("File created successfully!")
+
+    if filename:
+        print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File created successfully!")
+
+    fp.close()
+    return local_board
 
 
 def count_neighbors(board: list[list[bool]], row: int, col: int) -> int:
@@ -365,7 +371,7 @@ if __name__ == "__main__":
     display_welcome()
     global_board = get_start_board()
 
-    # Avoid stuck screens that only include still lifes
+    # Avoid stuck screens that only include still lives
     last_board:list[list[bool]] = []
 
     # Main game loop
