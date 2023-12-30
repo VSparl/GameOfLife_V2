@@ -20,10 +20,11 @@ class FileInvalidError(Exception):
 
 
 def handle_special_args() -> None:
-    """Handle special arg that starts with a dash (-)
+    """Handle special args that start with a dash (-)
 
-    Only one argument should be provided with the command, any others
-    will be ignored. A list of special arguments is found below:
+    Only one argument should be provided with the command in most cases,
+    any others will be ignored.
+    A list of special arguments is found below:
 
     -h to show help information and explain args.
     -l to list boards saved in the boards folder.
@@ -33,6 +34,7 @@ def handle_special_args() -> None:
         e.g. the File Explorer.
     -n to override file specified after -n arg.
     """
+    # TODO Make sure that the -h arg and the docstring say the same thing when done with implements
     if len(sys.argv) == 1:
         # No args to handle
         return
@@ -40,7 +42,12 @@ def handle_special_args() -> None:
     arg = sys.argv[1]  # Only first arg is looked at
     if arg == "-h":
         print("""
-Usage: py main.py [arg]\n
+Usage: py main.py [arg]
+
+The first argument is either ONLY a filename (with or without extension)
+of a .gol board, or a special argument.
+There will always only be ONE argument, except in the case of -f or -n
+
 Special args can be the following:
 -h to show this help message.
 -l to list the saved boards using the board creator (standalone program or module).
@@ -67,13 +74,39 @@ Special args can be the following:
             print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}Files deleted.")
         sys.exit(0)
 
-    if arg == "-f":
-        pass
+    if arg == "-f" and len(sys.argv) > 2:
+        print(f"{Fore.YELLOW}WARNING: {Fore.RESET}Function not implemented.")
+        fav_file = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
+
+        os.makedirs(os.path.join("..", "favourites"), exist_ok=True)  # Create favourites directory
+        # Move file, keeping the name
+        try:
+            os.rename(os.path.join(BOARDS_PATH, fav_file), os.path.join("..", "favourites", fav_file))
+        except FileNotFoundError:
+            pass
+            # TODO Error message and something ele i guess i have to go now
+
+        sys.exit(0)
         # TODO implement favourites function, see docstring
 
-    if arg == "-n":
-        pass
-        # TODO override filename after -n and enter board configurator
+    if arg == "-n" and len(sys.argv) > 2:
+        # Set the name of the file to override
+        file_to_override = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
+        if input(f"""If the file doesn't exist yet, a new one will be created.
+Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lower() == "y":
+            print()
+            manually_create_level(file_to_override)
+        sys.exit(0)
+
+    if arg == "-d" and len(sys.argv) > 2:
+        # Set the name of the file to delete
+        file_to_delete = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
+        try:
+            os.remove(os.path.join(BOARDS_PATH, file_to_delete))
+        except FileNotFoundError:
+            print(f"{Fore.RED}ERROR: {Fore.RESET}The filename \"{file_to_delete}\" "
+                  "doesn't seem to exist, so nothing was deleted.")
+        sys.exit(0)
 
 
 def display_welcome() -> None:
@@ -132,6 +165,7 @@ def controlled_input(input_string: str, max_len: int) -> list[str]:
     """
     input_chars: list[str] = []
     print(input_string, end="", flush=True)
+
     while True:
         if msvcrt.kbhit():  # React to keyboard input
             # Get typed character from keyboard and decode it
@@ -193,14 +227,14 @@ def generate_random_board(height: int = -1, width: int = -1) -> list[list[bool]]
 def import_from_file(filepath: str) -> list[list[bool]]:
     """Turns a file into a proper list and checks the validity of the board."""
     local_board: list[list[bool]] = []
-    line: str = "True"
+    line: str = "PLACEHOLDER"
 
     # Add file extension if it wasn't provided
     if filepath[-4:] != ".gol":
         filepath += ".gol"
 
     with open(os.path.join(BOARDS_PATH, filepath), "r", encoding="utf-8") as fp:
-        print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File found, processing...")
+        print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File found, initializing...")
         sleep(1.2)
 
         while line:
@@ -273,6 +307,7 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
         # Open file to save config in
         fp = open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8")
 
+    print()
     # Actually get and save input
     for i in range(height):
         # Format and write chars entered by user
@@ -289,8 +324,8 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
                 # Don't write last newline
                 fp.write("\n")
 
-    if filename:
-        print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File created successfully!")
+    if filename: # Again, only if saved in file
+        print(f"\n{Fore.GREEN}SUCCESS: {Fore.RESET}File created successfully!")
 
     fp.close()
     return local_board
@@ -379,4 +414,4 @@ if __name__ == "__main__":
         print_board(global_board)
         last_board = global_board
         global_board = update_board(global_board)
-        sleep(0.3)
+        sleep(0.15)
