@@ -7,6 +7,7 @@ from time import sleep
 from colorama import Back, Fore
 
 BOARDS_PATH: str = os.path.join("..", "boards")  # Path to where the boards are stored
+FAVOURITES_PATH: str = os.path.join("..", "favourites")  # Favourite boards
 
 
 class FileInvalidError(Exception):
@@ -20,7 +21,7 @@ class FileInvalidError(Exception):
 
 
 def handle_special_args() -> None:
-    """Handle special args that start with a dash (-)
+    """Handle special args that start with a hyphen (-)
 
     Only one argument should be provided with the command in most cases,
     any others will be ignored.
@@ -38,9 +39,9 @@ def handle_special_args() -> None:
     if len(sys.argv) == 1:
         # No args to handle
         return
+    arg1 = sys.argv[1]
 
-    arg = sys.argv[1]  # Only first arg is looked at
-    if arg == "-h":
+    if arg1 == "-h":
         print("""
 Usage: py main.py [arg]
 
@@ -57,41 +58,68 @@ Special args can be the following:
 -n to override the file specified after the -n argument""")
         sys.exit(0)
 
-    if arg == "-l":
-        print("Saved boards:\n")
+    if arg1 == "-l":
+        print(f"Saved boards:\n{Fore.LIGHTBLUE_EX}")
         boards: list[str] = os.listdir(BOARDS_PATH)
         boards.sort()
         print("\n".join(boards))
         # Show absolute path of boards folder for easy access
-        print(f"\nYour boards are saved here: {os.path.abspath(BOARDS_PATH)}")
-        sys.exit(0)
-        # TODO also show favs
+        print(f"{Fore.RESET}\nYour boards are saved here: {os.path.abspath(BOARDS_PATH)}\n\n")
 
-    if arg == "-c":
-        if input("Are you sure you want to DELETE all of your saved boards? [y/n] ").lower() == "y":
+        print(f"Favourites:\n{Fore.LIGHTCYAN_EX}")
+        boards: list[str] = os.listdir(FAVOURITES_PATH)
+        boards.sort()
+        print("\n".join(boards))
+        # Show absolute path of boards folder for easy access
+        print(f"{Fore.RESET}\nYour favourites are saved here: {os.path.abspath(BOARDS_PATH)}")
+
+        sys.exit(0)
+
+    if arg1 == "-c":
+        if input("Are you sure you want to DELETE all of your saved boards?\n"
+                 "Favourites will not be affected. [y/n] ").lower() == "y":
             for file in os.listdir(BOARDS_PATH):
-                os.removedirs(BOARDS_PATH)
+                # Remove each file but leave the folder
+                os.remove(os.path.join(BOARDS_PATH, file))
 
             print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}Files deleted.")
         sys.exit(0)
 
-    if arg == "-f" and len(sys.argv) > 2:
+    if arg1 == "-f" and len(sys.argv) > 2:
         fav_file = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
 
-        os.makedirs(os.path.join("..", "favourites"), exist_ok=True)  # Create favourites directory
-        # Move file, keeping the name
-        try:
-            os.rename(
-                os.path.join(BOARDS_PATH, fav_file),
-                os.path.join("..", "favourites", fav_file))
+        if fav_file in os.listdir(BOARDS_PATH):
+            # File is there, ready to move to favourites
+            if input("Are you sure you want to move"
+                     f" \"{fav_file}\" to favourites? [y/n] ").lower() == "y":
+                os.makedirs(FAVOURITES_PATH, exist_ok=True)  # Create favourites directory
+                # Move file, keeping the name
+                os.rename(
+                    os.path.join(BOARDS_PATH, fav_file),
+                    os.path.join(FAVOURITES_PATH, fav_file))
 
-        except FileNotFoundError:
-            print(f"{Fore.RED}ERROR: {Fore.RESET}File \"{fav_file}\" "
-                  "could not be found. No files were moved.")
+                print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File moved successfully.")
+                sys.exit(0)
+
+        if fav_file in os.listdir(FAVOURITES_PATH):
+            # File is already in favourites
+            if input(f"\"{fav_file}\" is already in your favourites folder."
+                     " Do you want to move it back to the other boards? [y/n] ").lower() == "y":
+                os.makedirs(BOARDS_PATH, exist_ok=True)  # User might have deleted boards directory
+                # Move file, keeping the name
+                os.rename(
+                    os.path.join(FAVOURITES_PATH, fav_file),
+                    os.path.join(BOARDS_PATH, fav_file))
+
+                print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File moved successfully.")
+                sys.exit(0)
+
+        print(f"{Fore.RED}ERROR: {Fore.RESET}File \"{fav_file}\" "
+                "could not be found. No files were moved.")
 
         sys.exit(0)
 
-    if arg == "-n" and len(sys.argv) > 2:
+    if arg1 == "-n" and len(sys.argv) > 2:
         # Set the name of the file to override
         file_to_override: str = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
         if input(f"""If the file doesn't exist yet, a new one will be created.
@@ -100,7 +128,7 @@ Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lo
             manually_create_level(file_to_override)
         sys.exit(0)
 
-    if arg == "-d" and len(sys.argv) > 2:
+    if arg1 == "-d" and len(sys.argv) > 2:
         # Set the name of the file to delete
         file_to_delete = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
         try:
@@ -127,14 +155,15 @@ def get_start_board() -> list[list[bool]]:
             # Try to import the file from the specified filepath
             local_board = import_from_file(sys.argv[1])
 
-        except FileNotFoundError:
-            # Start level editor
-            print(f"{Fore.RED}ERROR:{Fore.RESET} Your file was not found.",
-                "The level editor will start so you can make",
-                "your own board. \n")
+        except TypeError:
+            # File doesn't exist
+            if input(f"{Fore.RED}ERROR:{Fore.RESET} Your file was not found.\n"
+                     "Do you want to start the level editor to make your own board? [y/n] "
+                     ).lower() == "y":
+                # Prompt user to create their own board with the filename
+                local_board = manually_create_level(filename)
 
-            # Prompt user to create their own board with the filename
-            local_board = manually_create_level(filename)
+            else: sys.exit(0)
 
         except FileInvalidError:
             print(f"{Fore.RED}ERROR: {Fore.RESET}File invalid. Try again with another file.")
@@ -235,7 +264,9 @@ def import_from_file(filepath: str) -> list[list[bool]]:
     if filepath[-4:] != ".gol":
         filepath += ".gol"
 
-    with open(os.path.join(BOARDS_PATH, filepath), "r", encoding="utf-8") as fp:
+    target = BOARDS_PATH if filepath in os.listdir(BOARDS_PATH) else FAVOURITES_PATH if filepath in os.listdir(FAVOURITES_PATH) else None
+
+    with open(os.path.join(target, filepath), "r", encoding="utf-8") as fp:
         print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File found, initializing...")
         sleep(1.2)
 
@@ -282,6 +313,7 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
     """
     local_board: list[list[str]] = []
 
+    print()
     # Get parameters for the board from the user
     while True:
         width: str = input("Enter board width (chars): ")
