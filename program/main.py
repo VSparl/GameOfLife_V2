@@ -6,7 +6,7 @@ import sys
 from time import sleep
 from colorama import Back, Fore
 
-BOARDS_PATH = os.path.join("..", "boards")  # Path to where the boards are stored
+BOARDS_PATH: str = os.path.join("..", "boards")  # Path to where the boards are stored
 
 
 class FileInvalidError(Exception):
@@ -65,33 +65,35 @@ Special args can be the following:
         # Show absolute path of boards folder for easy access
         print(f"\nYour boards are saved here: {os.path.abspath(BOARDS_PATH)}")
         sys.exit(0)
+        # TODO also show favs
 
     if arg == "-c":
         if input("Are you sure you want to DELETE all of your saved boards? [y/n] ").lower() == "y":
             for file in os.listdir(BOARDS_PATH):
-                os.remove(os.path.join(BOARDS_PATH, file))
+                os.removedirs(BOARDS_PATH)
 
             print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}Files deleted.")
         sys.exit(0)
 
     if arg == "-f" and len(sys.argv) > 2:
-        print(f"{Fore.YELLOW}WARNING: {Fore.RESET}Function not implemented.")
         fav_file = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
 
         os.makedirs(os.path.join("..", "favourites"), exist_ok=True)  # Create favourites directory
         # Move file, keeping the name
         try:
-            os.rename(os.path.join(BOARDS_PATH, fav_file), os.path.join("..", "favourites", fav_file))
+            os.rename(
+                os.path.join(BOARDS_PATH, fav_file),
+                os.path.join("..", "favourites", fav_file))
+
         except FileNotFoundError:
-            pass
-            # TODO Error message and something ele i guess i have to go now
+            print(f"{Fore.RED}ERROR: {Fore.RESET}File \"{fav_file}\" "
+                  "could not be found. No files were moved.")
 
         sys.exit(0)
-        # TODO implement favourites function, see docstring
 
     if arg == "-n" and len(sys.argv) > 2:
         # Set the name of the file to override
-        file_to_override = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
+        file_to_override: str = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
         if input(f"""If the file doesn't exist yet, a new one will be created.
 Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lower() == "y":
             print()
