@@ -448,4 +448,4 @@ if __name__ == "__main__":
         print_board(global_board)
         last_board = global_board
         global_board = update_board(global_board)
-        sleep(0.15)
+        sleep(0.25)
