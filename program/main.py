@@ -410,6 +410,8 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
     The specified character is used to fill the cells, default is empty.
     """
     live_cells = 0
+    # Initialize buffer to avoid screen flickering for bigger boards
+    buffered_board = ""
 
     os.system("cls")  # Clear the terminal
 
@@ -417,11 +419,15 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
         for cell in row:
             # Color only if cell is alive
             if cell:
-                print(f"{Back.GREEN}{character} {Back.RESET}", end="")
+                buffered_board += f"{Back.GREEN}{character} {Back.RESET}"
                 live_cells += 1
             else:
-                print(f"{character} ", end="")
-        print()  # New line after row
+                buffered_board += f"{character} "
+        buffered_board += "\n"  # New line after row
+
+    # Print only at the end to minimize flickering
+    buffered_board = buffered_board[:-2]  # Remove last newline
+    print(buffered_board)
 
     if live_cells == 0:
         # Entire board is dead
