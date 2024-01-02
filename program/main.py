@@ -408,6 +408,12 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
     Colorama is used to draw colored characters.
     Live cells are displayed as green.
     The specified character is used to fill the cells, default is empty.
+
+    Screen flickering can occur, but that can't be avoided while not fundamentally
+    changing the structure of the program. This is due to how most terminal
+    applications handle output, which is line by line. When the ouput doesn't
+    happen to ba synchronized with the monitor refresh rate, flickering can't be
+    avoided.
     """
     live_cells = 0
     # Initialize buffer to avoid screen flickering for bigger boards
