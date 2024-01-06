@@ -201,6 +201,7 @@ def controlled_input(input_string: str, max_len: int) -> list[str]:
         if msvcrt.kbhit():  # React to keyboard input
             # Get typed character from keyboard and decode it
             char = msvcrt.getch().decode("utf-8", "replace")
+            # TODO check if msvcrt.getwch() works better (unicode)
             # Handle all exceptions and special keys
             if char == "\x03":  # Ctrl+C
                 # Simulate same behaviour of "regular" Ctrl+C
