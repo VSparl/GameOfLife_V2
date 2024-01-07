@@ -6,9 +6,6 @@ import sys
 from time import sleep
 from colorama import Back, Fore
 
-BOARDS_PATH: str = os.path.join("..", "boards")  # Path to where the boards are stored
-FAVOURITES_PATH: str = os.path.join("..", "favourites")  # Favourite boards
-
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
@@ -18,6 +15,13 @@ class FileInvalidError(Exception):
         "All characters must be printable and all lines must have the same length."):
         self.message = message
         super().__init__(self.message)
+
+
+def check_origin(filename: str) -> str:
+    """Check boards and favourites folder and return the location of the file."""
+    return BOARDS_PATH if filename in os.listdir(BOARDS_PATH) \
+    else FAVOURITES_PATH if filename in os.listdir(FAVOURITES_PATH) \
+    else None
 
 
 def handle_special_args() -> None:
@@ -41,7 +45,7 @@ def handle_special_args() -> None:
         return
     arg1 = sys.argv[1]
 
-    if arg1 == "-h":
+    if arg1 == "-h":  # Help
         print("""
 Usage: py main.py [arg]
 
@@ -58,24 +62,28 @@ Special args can be the following:
 -n to override the file specified after the -n argument""")
         sys.exit(0)
 
-    if arg1 == "-l":
+    if arg1 == "-l":  # List
         print(f"Saved boards:\n{Fore.LIGHTBLUE_EX}")
         boards: list[str] = os.listdir(BOARDS_PATH)
         boards.sort()
         print("\n".join(boards))
         # Show absolute path of boards folder for easy access
-        print(f"{Fore.RESET}\nYour boards are saved here: {os.path.abspath(BOARDS_PATH)}\n\n")
+        print(f"{Fore.RESET}\n{Fore.LIGHTBLACK_EX}"
+              f"Your boards are saved here: {os.path.abspath(BOARDS_PATH)}"
+              f"{Fore.RESET}\n\n")
 
         print(f"Favourites:\n{Fore.LIGHTCYAN_EX}")
         boards: list[str] = os.listdir(FAVOURITES_PATH)
         boards.sort()
         print("\n".join(boards))
         # Show absolute path of boards folder for easy access
-        print(f"{Fore.RESET}\nYour favourites are saved here: {os.path.abspath(BOARDS_PATH)}")
+        print(f"{Fore.RESET}\n{Fore.LIGHTBLACK_EX}"
+              f"Your favourites are saved here: {os.path.abspath(FAVOURITES_PATH)}"
+              f"{Fore.RESET}")
 
         sys.exit(0)
 
-    if arg1 == "-c":
+    if arg1 == "-c":  # Clear
         if input("Are you sure you want to DELETE all of your saved boards?\n"
                  "Favourites will not be affected. [y/n] ").lower() == "y":
             for file in os.listdir(BOARDS_PATH):
@@ -85,7 +93,7 @@ Special args can be the following:
             print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}Files deleted.")
         sys.exit(0)
 
-    if arg1 == "-f" and len(sys.argv) > 2:
+    if arg1 == "-f" and len(sys.argv) > 2:  # Favourite
         fav_file = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
 
         if fav_file in os.listdir(BOARDS_PATH):
@@ -119,7 +127,7 @@ Special args can be the following:
 
         sys.exit(0)
 
-    if arg1 == "-n" and len(sys.argv) > 2:
+    if arg1 == "-n" and len(sys.argv) > 2:  # New file
         # Set the name of the file to override
         file_to_override: str = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
         if input(f"""If the file doesn't exist yet, a new one will be created.
@@ -128,7 +136,7 @@ Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lo
             manually_create_level(file_to_override)
         sys.exit(0)
 
-    if arg1 == "-d" and len(sys.argv) > 2:
+    if arg1 == "-d" and len(sys.argv) > 2:  # Delete
         # Set the name of the file to delete
         file_to_delete = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
         try:
@@ -171,12 +179,14 @@ def get_start_board() -> list[list[bool]]:
                 # Delete invalid file
                 if filename[-4:] != ".gol":
                     filename += ".gol"
-                os.remove(os.path.join(BOARDS_PATH, filename))
+                # Look in both the boards and the favourites folder
+                os.remove(os.path.join(check_origin(filename), filename))
                 print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}{filename} deleted successfully")
 
             sys.exit(1)
 
     else:
+        # No args, full terminal boards will be created
         local_board = generate_random_board()
 
     return local_board
@@ -200,8 +210,7 @@ def controlled_input(input_string: str, max_len: int) -> list[str]:
     while True:
         if msvcrt.kbhit():  # React to keyboard input
             # Get typed character from keyboard and decode it
-            char = msvcrt.getch().decode("utf-8", "replace")
-            # TODO check if msvcrt.getwch() works better (unicode)
+            char = msvcrt.getwch()
             # Handle all exceptions and special keys
             if char == "\x03":  # Ctrl+C
                 # Simulate same behaviour of "regular" Ctrl+C
@@ -265,9 +274,7 @@ def import_from_file(filepath: str) -> list[list[bool]]:
     if filepath[-4:] != ".gol":
         filepath += ".gol"
 
-    target = BOARDS_PATH if filepath in os.listdir(BOARDS_PATH) else FAVOURITES_PATH if filepath in os.listdir(FAVOURITES_PATH) else None
-
-    with open(os.path.join(target, filepath), "r", encoding="utf-8") as fp:
+    with open(os.path.join(check_origin(filepath), filepath), "r", encoding="utf-8") as fp:
         print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File found, initializing...")
         sleep(1.2)
 
@@ -448,7 +455,17 @@ def end_game() -> None:
     sys.exit(0)
 
 
+# TODO must start in correct directory, else the relative paths can't be found
+BOARDS_PATH: str = os.path.join("..", "boards")  # Path to where the boards are stored
+FAVOURITES_PATH: str = os.path.join("..", "favourites")  # Favourite boards
+
+
 if __name__ == "__main__":
+    os.system("cls")
+    # Make necessary directories
+    os.makedirs(BOARDS_PATH, exist_ok=True)
+    os.makedirs(FAVOURITES_PATH, exist_ok=True)
+
     handle_special_args()
     display_welcome()
     global_board = get_start_board()
