@@ -27,19 +27,20 @@ def check_origin(filename: str) -> str:
 def handle_special_args() -> None:
     """Handle special args that start with a hyphen (-)
 
-    Only one argument should be provided with the command in most cases,
-    any others will be ignored.
+    Second argument will only be taken into account if first
+    argument is valid.
     A list of special arguments is found below:
 
-    -h to show help information and explain args.
-    -l to list boards saved in the boards folder.
-    -c to clear the entire boards folder (requires confirmation).
-    -f to mark board after -f arg as favourite in special folder.
-        Favourite files can only be deleted manually through
-        e.g. the File Explorer.
-    -n to override file specified after -n arg.
+    -h to show a help message explaining the args and usage
+    -l to list the saved boards using the board creator (standalone program or module).
+    -c to delete all the files in the boards folder.
+    -f to mark the board specified in the next argument as a favourite.
+        Favourites are not affected by the -c argument.
+        If the file is already in the favourites folder, offer to move it back.
+    -n to create a new file with the specified name, even if a file with that name
+        already exists.
+    -d to delete the file, even if it is in the favourites folder.
     """
-    # TODO Make sure that the -h arg and the docstring say the same thing when done with implements
     if len(sys.argv) == 1:
         # No args to handle
         return
@@ -51,15 +52,18 @@ Usage: py main.py [arg]
 
 The first argument is either ONLY a filename (with or without extension)
 of a .gol board, or a special argument.
-There will always only be ONE argument, except in the case of -f or -n
+A second argument will only be taken into account if paired with a valid special argument.
 
 Special args can be the following:
 -h to show this help message.
 -l to list the saved boards using the board creator (standalone program or module).
 -c to clear your boards folder.
 -f to mark the board specified in the next argument as a favourite.
-    Favourites can only be deleted manually in the file explorer.
--n to override the file specified after the -n argument""")
+    Favourites are not affected by the -c argument.
+    Also use this argument to move back a board from the favourites folder.
+-n to create a new file with the specified name, even if a file with that name
+    already exists.
+-d to delete the file, even if it is in your favourites folder.""")
         sys.exit(0)
 
     if arg1 == "-l":  # List
@@ -122,6 +126,10 @@ Special args can be the following:
                 print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File moved successfully.")
                 sys.exit(0)
 
+            else:
+                print("\nNo files were moved.")
+                sys.exit(0)
+
         print(f"{Fore.RED}ERROR: {Fore.RESET}File \"{fav_file}\" "
                 "could not be found. No files were moved.")
 
@@ -140,17 +148,42 @@ Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lo
         # Set the name of the file to delete
         file_to_delete = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
         try:
-            os.remove(os.path.join(BOARDS_PATH, file_to_delete))
-        except FileNotFoundError:
+            os.remove(os.path.join(check_origin(file_to_delete), file_to_delete))
+            print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File deleted successfully.")
+        except TypeError:
+            # Because of the None return in check_origin
             print(f"{Fore.RED}ERROR: {Fore.RESET}The filename \"{file_to_delete}\" "
                   "doesn't seem to exist, so nothing was deleted.")
         sys.exit(0)
 
 
 def display_welcome() -> None:
-    """Print some welcome words."""
+    """Print some welcome words and infos regarding the game.
+    
+    Credit to https://fsymbols.com/generators/carty/ for the ASCII art.
+    """
     os.system("cls")
-    print("Welcome to the Game of Life, blah blah blah...")
+    print("""
+░░░░░██╗░█████╗░██╗░░██╗███╗░░██╗  ░█████╗░░█████╗░███╗░░██╗░██╗░░░░░░░██╗░█████╗░██╗░░░██╗██╗░██████╗
+░░░░░██║██╔══██╗██║░░██║████╗░██║  ██╔══██╗██╔══██╗████╗░██║░██║░░██╗░░██║██╔══██╗╚██╗░██╔╝╚█║██╔════╝
+░░░░░██║██║░░██║███████║██╔██╗██║  ██║░░╚═╝██║░░██║██╔██╗██║░╚██╗████╗██╔╝███████║░╚████╔╝░░╚╝╚█████╗░
+██╗░░██║██║░░██║██╔══██║██║╚████║  ██║░░██╗██║░░██║██║╚████║░░████╔═████║░██╔══██║░░╚██╔╝░░░░░░╚═══██╗
+╚█████╔╝╚█████╔╝██║░░██║██║░╚███║  ╚█████╔╝╚█████╔╝██║░╚███║░░╚██╔╝░╚██╔╝░██║░░██║░░░██║░░░░░░██████╔╝
+░╚════╝░░╚════╝░╚═╝░░╚═╝╚═╝░░╚══╝  ░╚════╝░░╚════╝░╚═╝░░╚══╝░░░╚═╝░░░╚═╝░░╚═╝░░╚═╝░░░╚═╝░░░░░░╚═════╝░
+
+░██████╗░░█████╗░███╗░░░███╗███████╗  ░█████╗░███████╗  ██╗░░░░░██╗███████╗███████╗
+██╔════╝░██╔══██╗████╗░████║██╔════╝  ██╔══██╗██╔════╝  ██║░░░░░██║██╔════╝██╔════╝
+██║░░██╗░███████║██╔████╔██║█████╗░░  ██║░░██║█████╗░░  ██║░░░░░██║█████╗░░█████╗░░
+██║░░╚██╗██╔══██║██║╚██╔╝██║██╔══╝░░  ██║░░██║██╔══╝░░  ██║░░░░░██║██╔══╝░░██╔══╝░░
+╚██████╔╝██║░░██║██║░╚═╝░██║███████╗  ╚█████╔╝██║░░░░░  ███████╗██║██║░░░░░███████╗
+░╚═════╝░╚═╝░░╚═╝╚═╝░░░░░╚═╝╚══════╝  ░╚════╝░╚═╝░░░░░  ╚══════╝╚═╝╚═╝░░░░░╚══════╝
+""")
+    if input("Woud you like to check out the instructions? [y/n] ").lower() == "y":
+        # TODO instructions
+        print()
+        # Also check out -h argument for extended usage
+        print("Too bad, not implemented!")
+        input("\nPress [Enter] to continue to the game.")
 
 
 def get_start_board() -> list[list[bool]]:
@@ -198,8 +231,6 @@ def controlled_input(input_string: str, max_len: int) -> list[str]:
     Automatically returns and goes on to the next line when the specified
     input length has been reached.
     Still allows for Ctrl+C to interrupt the program.
-    Special characters like ö, ñ etc. will be shown with a placeholder (�)
-    as they are not UTF-8.
     This function was written with the help of ChatGPT.
 
     WARNING: This only works on Windows devices.
@@ -346,6 +377,11 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
         # If directory doesn't exist yet, create it
         os.makedirs(BOARDS_PATH, exist_ok=True)
 
+        # Check availability of the file name
+        if check_origin(filename) is not None:
+            print(f"{Fore.RED}ERROR:{Fore.RESET} This filename already exists, please choose another")
+            # TODO continue here, make new filename
+
         # Open file to save config in
         fp = open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8")
 
@@ -455,10 +491,34 @@ def end_game() -> None:
     sys.exit(0)
 
 
-# TODO must start in correct directory, else the relative paths can't be found
+def check_starting_dir():
+    """Check the starting directory.
+    
+    If the program isn't started from the "programs" directory,
+    all the relative paths used in the program will no longer work.
+    
+    If started incorrectly, notify the user of the error and close the program immediately.
+
+    Also check the operating system, as only windows is supported at the time.
+    """
+    if os.getcwd()[-7:] != "program":
+        print(f"{Fore.RED}ERROR:{Fore.RESET} You seem to have started the program from "
+          "another directory than the \"program\" directory this project came with.\nPlease "
+          "restart the game from the proper directory, as the game can't access important "
+          "data (like your saved boards) otherwise.")
+        sys.exit(1)
+
+    if os.name != "nt":
+        print(f"{Fore.RED}ERROR:{Fore.RESET} You don't seem to be running a Windows device.\n"
+              "This game is only supported on the Windows operating system. Please use a VM "
+              "or another device to run this game.")
+        sys.exit(2)
+
+
+# "Pre-flight check" and constant definitions
+check_starting_dir()
 BOARDS_PATH: str = os.path.join("..", "boards")  # Path to where the boards are stored
 FAVOURITES_PATH: str = os.path.join("..", "favourites")  # Favourite boards
-
 
 if __name__ == "__main__":
     os.system("cls")
