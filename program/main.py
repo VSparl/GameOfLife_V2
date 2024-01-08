@@ -6,6 +6,7 @@ import sys
 from time import sleep
 from colorama import Back, Fore
 
+# TODO tell user that is works better in the new windows terminal if he is using the old one (and check if it works in the old one)
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
