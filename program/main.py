@@ -98,7 +98,7 @@ Special args can be the following:
         sys.exit(0)
 
     if arg1 == "-f" and len(sys.argv) > 2:  # Favourite
-        fav_file = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
+        fav_file = f"{sys.argv[2]}{'.gol' if sys.argv[2][-4:] != '.gol' else ''}"
 
         if fav_file in os.listdir(BOARDS_PATH):
             # File is there, ready to move to favourites
@@ -137,7 +137,7 @@ Special args can be the following:
 
     if arg1 == "-n" and len(sys.argv) > 2:  # New file
         # Set the name of the file to override
-        file_to_override: str = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
+        file_to_override: str = f"{sys.argv[2]}{'.gol' if sys.argv[2][-4:] != '.gol' else ''}"
         if input(f"""If the file doesn't exist yet, a new one will be created.
 Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lower() == "y":
             print()
@@ -146,7 +146,7 @@ Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lo
 
     if arg1 == "-d" and len(sys.argv) > 2:  # Delete
         # Set the name of the file to delete
-        file_to_delete = f"{sys.argv[2]}{".gol" if sys.argv[2][-4:] != ".gol" else ""}"
+        file_to_delete = f"{sys.argv[2]}{'.gol' if sys.argv[2][-4:] != '.gol' else ''}"
         try:
             os.remove(os.path.join(check_origin(file_to_delete), file_to_delete))
             print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File deleted successfully.")
