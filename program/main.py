@@ -6,7 +6,6 @@ import sys
 from time import sleep
 from colorama import Back, Fore
 
-# TODO tell user that is works better in the new windows terminal if he is using the old one (and check if it works in the old one)
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
@@ -183,8 +182,26 @@ def display_welcome() -> None:
         # TODO instructions
         print()
         # Also check out -h argument for extended usage
-        print("Too bad, not implemented!")
-        input("\nPress [Enter] to continue to the game.")
+        print(f"""
+{Back.LIGHTWHITE_EX}{Fore.BLACK}Overviev:{Back.RESET}{Fore.RESET}
+    The Game of Life is a cellular automaton devised by mathematician John Conway in 1970.
+    It's a zero-player game, meaning its evolution is determined by its initial state, with no further input.
+    The game is played on a grid of cells, each of which can be in one of two states: alive or dead.
+
+{Back.LIGHTWHITE_EX}{Fore.BLACK}Rules:{Back.RESET}{Fore.RESET}
+    Births:    A dead cell with exactly three live neighbors becomes alive in the next generation.
+    Survivals: A live cell with two or three live neighbors survives to the next generation.
+    Deaths:    A live cell with fewer than two live neighbors dies due to underpopulation,
+                 and a live cell with more than three live neighbors dies due to overpopulation.
+
+{Back.LIGHTWHITE_EX}{Fore.BLACK}Notes:{Back.RESET}{Fore.RESET}
+    Also read the README.md file for more information.
+    This game looks and works best in the new windows terminal application
+    (the default terminal app for Windows 11)
+""")
+        quit()
+        input("Press [Enter] to continue to the game.")
+    os.system("cls")
 
 
 def get_start_board() -> list[list[bool]]:
@@ -353,6 +370,24 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
     """
     local_board: list[list[str]] = []
 
+    # Set up file-related stuff
+    if filename:  # Do only if config should be saved in a file
+        # Add file extension if not present
+        if filename[-4:] != ".gol":
+            filename += ".gol"
+
+        # If directory doesn't exist yet, create it
+        os.makedirs(BOARDS_PATH, exist_ok=True)
+
+        if check_origin(filename) == FAVOURITES_PATH:
+            print(f"A file called \"{filename}\" is already in your favourites.")
+            filename = filename[:-4] + "(1)" + filename[-4:]  # Add ending (1) to filename
+            print(f"A file called \"{filename}\" will be created instead.")
+
+        # Open file to save config in
+        fp = open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8")
+
+
     print()
     # Get parameters for the board from the user
     while True:
@@ -368,23 +403,6 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
 
         height, width = int(height), int(width)
         break
-
-    # Set up file-related stuff
-    if filename:  # Do only if config should be saved in a file
-        # Add file extension if not present
-        if filename[-4:] != ".gol":
-            filename += ".gol"
-
-        # If directory doesn't exist yet, create it
-        os.makedirs(BOARDS_PATH, exist_ok=True)
-
-        # Check availability of the file name
-        if check_origin(filename) is not None:
-            print(f"{Fore.RED}ERROR:{Fore.RESET} This filename already exists, please choose another")
-            # TODO continue here, make new filename
-
-        # Open file to save config in
-        fp = open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8")
 
     print()
     # Actually get and save input
