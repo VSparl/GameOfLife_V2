@@ -10,7 +10,7 @@ The Game of Life is a cellular automaton devised by mathematician John Conway in
 3. **Death**: A live cell with *fewer than two* live neighbors dies due to underpopulation, and a live cell with *more than three* live neighbors dies due to overpopulation.
 
 ## Usage
-1. **Installation**: Clone the GitHub repository onto your machine. To do this, navigate to your directory of choice in your terminal and enter `git clone https://github.com/VSparl/GameOfLife_V2.git`
+1. **Installation**: Clone the GitHub repository onto your machine. To do this, navigate to your directory of choice in your terminal and enter `git clone https://github.com/VSparl/GameOfLife_V2.git`. Next, you will need to install the `colorama` module using `pip install colorama`.
 
 2. **Starting the Game**: Navigate into the `program` folder using `cd GameOfLife_V2/program`. Launch the game using the terminal command `py main.py` and add any additional arguments (maybe start with `-h` for some help).
 
