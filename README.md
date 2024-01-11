@@ -26,4 +26,8 @@ The Game of Life made its first public appearance in the October 1970 issue of S
 This simple set-up, played out by the computer over many generations creates vast complexity that is hard to watch without thinking of simple cellular organisms and their development. In fact, in 2010, a structure was created by Andrew Wade [capable of reproducing itself](https://www.newscientist.com/article/mg20627653-800-first-replicating-creature-spawned-in-life-simulator/), reminding us of the real-life molecules that eventually lead to all living creatures on earth.
 
 ## Educational significance
+<<<<<<< HEAD
 Beyond its scientific contributions, the Game of Life has become a popular educational tool. It is often used to introduce students to concepts in computer science or mathematics. The simplicity of the rules and the visually compelling evolving patterns make it an interesting and interactive way to teach fundamental principles in a variety of applications. Many computer science courses incorporate the Game of Life to illustrate various concepts such as cellular automata, algorithmic thinking, and causality when setting up systems of rules.
+=======
+Beyond its scientific contributions, the Game of Life has become a popular educational tool. It is often used to introduce students to various concepts in computer science or mathematics. The simplicity of the rules and the visually compelling evolving patterns make it an interesting and interactive way to teach fundamental principles in a variety of applications. Many computer science courses incorporate the Game of Life to illustrate concepts such as cellular automata, algorithmic thinking, and causality when setting up systems of rules.
+>>>>>>> 74fbec0e507331f4123fe8e3069e059a51ad849a
