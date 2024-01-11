@@ -1,12 +1,13 @@
-"""Making a module docstring so my linter shuts up"""
+"""Read the README if you expected a docstring, I'm lazy."""
 import msvcrt
 import random
 import os
 import sys
 from time import sleep
 from colorama import Back, Fore
-# TODO end game function should be prettier
+
 # TODO module docstring :(
+# TODO requirements.txt and include in readme instructions
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
@@ -187,7 +188,8 @@ def display_welcome() -> None:
     The Game of Life is a cellular automaton devised by mathematician John Conway in 1970.
     It's a zero-player game, meaning its evolution is determined by its initial state, with no further input.
     The game is played on a grid of cells, each of which can be in one of two states: alive or dead.
-    Each generation is created by applying the game rules simultaneously to every cell on the board, births and deaths occur simultaneously.
+    Each generation is created by applying the game rules simultaneously to every cell on the board,
+    births and deaths occur simultaneously.
 
 {Back.LIGHTWHITE_EX}{Fore.BLACK}Rules:{Back.RESET}{Fore.RESET}
     Births:    A dead cell with exactly three live neighbors becomes alive in the next generation.
@@ -198,7 +200,7 @@ def display_welcome() -> None:
 {Back.LIGHTWHITE_EX}{Fore.BLACK}Additional information:{Back.RESET}{Fore.RESET}
     Also read the README.md file for more information.
     This game looks and works best in the new windows terminal application
-    (the default terminal app for Windows 11)
+        (the default terminal app for Windows 11)
 """)
         input("Press [Enter] to continue to the game.")
     os.system("cls")
@@ -448,10 +450,15 @@ def count_neighbors(board: list[list[bool]], row: int, col: int) -> int:
     return live_neighbors
 
 
-def update_board(board: list[list[bool]]) -> list[list[bool]]:
-    """Update the board according to the rules of the Game of Life."""
+def update_board(board: list[list[bool]], count: int) -> list[list[bool]]:
+    """Update the board according to the rules of the Game of Life.
+    
+    Credit to Mizipor on StackOverflow for the non-blocking input.
+    Link to the discussion: https://stackoverflow.com/questions/2408560/non-blocking-console-input
+    """
     # Initialize a board where all cells are dead
     new_board: list[list[bool]] = [[False] * len(board[0]) for _ in range(len(board))]
+    live_cells = 0  # To check if entire board is dead
 
     for i, _ in enumerate(board):
         for j, counter in enumerate(board[i]):
@@ -461,6 +468,17 @@ def update_board(board: list[list[bool]]) -> list[list[bool]]:
             #     live cell has 2 or 3 neighbours           cell is a birth cell -> 3 neighbours
             if (counter and (live_neighbors in (2, 3))) or (not counter and live_neighbors == 3):
                 new_board[i][j] = True
+                live_cells += 1
+
+    if live_cells == 0:
+        # Entire board is dead, end the game with the amount of generations passed
+        end_game(count)
+
+    if msvcrt.kbhit():
+        if msvcrt.getch() == b"\r":
+            # User has pressed [Enter] to exit the game mid-simulation.
+            end_game(count)
+
 
     return new_board
 
@@ -478,7 +496,6 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
     happen to ba synchronized with the monitor refresh rate, flickering can't be
     avoided.
     """
-    live_cells = 0
     # Initialize buffer to avoid screen flickering for bigger boards
     buffered_board = ""
 
@@ -489,7 +506,6 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
             # Color only if cell is alive
             if cell:
                 buffered_board += f"{Back.GREEN}{character} {Back.RESET}"
-                live_cells += 1
             else:
                 buffered_board += f"{character} "
         buffered_board += "\n"  # New line after row
@@ -498,14 +514,20 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
     buffered_board = buffered_board[:-2]  # Remove last newline
     print(buffered_board)
 
-    if live_cells == 0:
-        # Entire board is dead
-        end_game()
 
-
-def end_game() -> None:
-    """Finish the game and display some text as the end"""
-    print("Game finished.")
+def end_game(count: int = -1) -> None:
+    """Finish the game and display the number of passed generations."""
+    print("""
+░██████╗██╗███╗░░░███╗██╗░░░██╗██╗░░░░░░█████╗░████████╗██╗░█████╗░███╗░░██╗  ░█████╗░██╗░░░██╗███████╗██████╗░
+██╔════╝██║████╗░████║██║░░░██║██║░░░░░██╔══██╗╚══██╔══╝██║██╔══██╗████╗░██║  ██╔══██╗██║░░░██║██╔════╝██╔══██╗
+╚█████╗░██║██╔████╔██║██║░░░██║██║░░░░░███████║░░░██║░░░██║██║░░██║██╔██╗██║  ██║░░██║╚██╗░██╔╝█████╗░░██████╔╝
+░╚═══██╗██║██║╚██╔╝██║██║░░░██║██║░░░░░██╔══██║░░░██║░░░██║██║░░██║██║╚████║  ██║░░██║░╚████╔╝░██╔══╝░░██╔══██╗
+██████╔╝██║██║░╚═╝░██║╚██████╔╝███████╗██║░░██║░░░██║░░░██║╚█████╔╝██║░╚███║  ╚█████╔╝░░╚██╔╝░░███████╗██║░░██║
+╚═════╝░╚═╝╚═╝░░░░░╚═╝░╚═════╝░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝  ░╚════╝░░░░╚═╝░░░╚══════╝╚═╝░░╚═╝
+""")
+    if count >= 0:
+        print(f"Your game lasted {count} generation{"s" if count > 1 else ""}.")
+    input("\nPress [Enter] to exit the game.")
     # Exit program with code 0
     sys.exit(0)
 
@@ -524,13 +546,15 @@ def check_starting_dir():
         print(f"{Fore.RED}ERROR:{Fore.RESET} You seem to have started the program from "
           "another directory than the \"program\" directory this project came with.\nPlease "
           "restart the game from the proper directory, as the game can't access important "
-          "data (like your saved boards) otherwise.")
+          "data (like your saved boards) otherwise.\n\n"
+          "Please refer to the README.md file for intructions on the proper installation "
+          "and usage of this program.")
         sys.exit(1)
 
     if os.name != "nt":
         print(f"{Fore.RED}ERROR:{Fore.RESET} You don't seem to be running a Windows device.\n"
               "This game is only supported on the Windows operating system. Please use a VM "
-              "or another device to run this game.")
+              "or a Windows device to run this game.")
         sys.exit(2)
 
 
@@ -545,16 +569,20 @@ if __name__ == "__main__":
     os.makedirs(BOARDS_PATH, exist_ok=True)
     os.makedirs(FAVOURITES_PATH, exist_ok=True)
 
-    handle_special_args()
-    display_welcome()
+    handle_special_args()  # Check special args first
+    display_welcome()  # Only if no special args were called
+    # Initial configuration comes either from the user or is randomly generated
     global_board = get_start_board()
+
 
     # Avoid stuck screens that only include still lives
     last_board:list[list[bool]] = []
+    num_generations = 0  # Keep track of how many generations passed
 
     # Main game loop
     while last_board != global_board:
+        num_generations += 1
         print_board(global_board)
         last_board = global_board
-        global_board = update_board(global_board)
-        sleep(0.25)
+        global_board = update_board(global_board, num_generations)
+        sleep(1)
