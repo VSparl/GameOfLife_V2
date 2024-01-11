@@ -2,7 +2,7 @@
 # Conway's Game of Life
 
 ## Overview
-The Game of Life is a cellular automaton devised by mathematician John Horton Conway in 1970. It's a zero-player game, meaning its evolution is determined by its initial state, requiring no further input from the observer. The game is played on a grid of cells, each of which can be in one of two states: alive or dead. Each generation is created by applying the game rules simultaneously to every cell on the board, births and deaths occur simultaneously as well.
+The Game of Life is a cellular automaton devised by mathematician John Conway in 1970. It's a zero-player game, meaning its evolution is determined by its initial state, with no further input. The game is played on a grid of cells, each of which can be in one of two states: alive or dead. Each generation is created by applying the game rules simultaneously to every cell on the board, births and deaths occur simultaneously.
 
 ## Rules
 1. **Birth**: A dead cell with *exactly three* live neighbors becomes alive in the next generation.
@@ -21,13 +21,9 @@ The Game of Life is a cellular automaton devised by mathematician John Horton Co
 5. **Exiting**: To exit the game, press `Ctrl + C` to interrupt the program or follow on-screen instructions.
 
 ## History
-The Game of Life made its first public appearance in the October 1970 issue of Scientific American, in Martin Gardner's "Mathematical Games" column. The game's fundamental simplicity and the emergence of complex patterns - despite those straightforward laws - have made it a popular subject of study in computer science, mathematics, and various other scientific fields.
+Conway's Game of Life is a cellular automaton devised by the British mathematician John Horton Conway in 1970. The game is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. The game made its first public appearance in the October 1970 issue of Scientific American, in Martin Gardner's "Mathematical Games" column. The game's fundamental simplicity and the emergence of complex patterns - despite those straightforward laws - have made it a popular subject of study in computer science, mathematics, and various other scientific fields.
 
-This simple set-up, played out by the computer over many generations creates vast complexity that is hard to watch without thinking of simple cellular organisms and their development. In fact, in 2010, a structure was created by Andrew Wade [capable of reproducing itself](https://www.newscientist.com/article/mg20627653-800-first-replicating-creature-spawned-in-life-simulator/), reminding us of the real-life molecules that eventually lead to all living creatures on earth.
+This simple set-up, played out by the computer over many generations creates vast complexity that is hard to watch without thinking of simple cellular organisms and their development. In fact, in 2010, a structure was created within the game by Andrew Wade [capable of reproducing itself](https://www.newscientist.com/article/mg20627653-800-first-replicating-creature-spawned-in-life-simulator/), reminding us of the real-life molecules that eventually lead to all the living creatures on earth.
 
 ## Educational significance
-<<<<<<< HEAD
 Beyond its scientific contributions, the Game of Life has become a popular educational tool. It is often used to introduce students to concepts in computer science or mathematics. The simplicity of the rules and the visually compelling evolving patterns make it an interesting and interactive way to teach fundamental principles in a variety of applications. Many computer science courses incorporate the Game of Life to illustrate various concepts such as cellular automata, algorithmic thinking, and causality when setting up systems of rules.
-=======
-Beyond its scientific contributions, the Game of Life has become a popular educational tool. It is often used to introduce students to various concepts in computer science or mathematics. The simplicity of the rules and the visually compelling evolving patterns make it an interesting and interactive way to teach fundamental principles in a variety of applications. Many computer science courses incorporate the Game of Life to illustrate concepts such as cellular automata, algorithmic thinking, and causality when setting up systems of rules.
->>>>>>> 74fbec0e507331f4123fe8e3069e059a51ad849a
