@@ -5,7 +5,8 @@ import os
 import sys
 from time import sleep
 from colorama import Back, Fore
-
+# TODO end game function should be prettier
+# TODO module docstring :(
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
@@ -179,7 +180,6 @@ def display_welcome() -> None:
 ░╚═════╝░╚═╝░░╚═╝╚═╝░░░░░╚═╝╚══════╝  ░╚════╝░╚═╝░░░░░  ╚══════╝╚═╝╚═╝░░░░░╚══════╝
 """)
     if input("Woud you like to check out the instructions? [y/n] ").lower() == "y":
-        # TODO instructions
         print()
         # Also check out -h argument for extended usage
         print(f"""
@@ -187,6 +187,7 @@ def display_welcome() -> None:
     The Game of Life is a cellular automaton devised by mathematician John Conway in 1970.
     It's a zero-player game, meaning its evolution is determined by its initial state, with no further input.
     The game is played on a grid of cells, each of which can be in one of two states: alive or dead.
+    Each generation is created by applying the game rules simultaneously to every cell on the board, births and deaths occur simultaneously.
 
 {Back.LIGHTWHITE_EX}{Fore.BLACK}Rules:{Back.RESET}{Fore.RESET}
     Births:    A dead cell with exactly three live neighbors becomes alive in the next generation.
@@ -194,12 +195,11 @@ def display_welcome() -> None:
     Deaths:    A live cell with fewer than two live neighbors dies due to underpopulation,
                  and a live cell with more than three live neighbors dies due to overpopulation.
 
-{Back.LIGHTWHITE_EX}{Fore.BLACK}Notes:{Back.RESET}{Fore.RESET}
+{Back.LIGHTWHITE_EX}{Fore.BLACK}Additional information:{Back.RESET}{Fore.RESET}
     Also read the README.md file for more information.
     This game looks and works best in the new windows terminal application
     (the default terminal app for Windows 11)
 """)
-        quit()
         input("Press [Enter] to continue to the game.")
     os.system("cls")
 
