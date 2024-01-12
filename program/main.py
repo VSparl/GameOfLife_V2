@@ -1,13 +1,13 @@
 """Read the README if you expected a docstring, I'm lazy."""
+import sys
+import os
 import msvcrt
 import random
-import os
-import sys
 from time import sleep
 from colorama import Back, Fore
 
-# TODO module docstring :(
 # TODO requirements.txt and include in readme instructions
+# TODO bring the board creator up to date
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
@@ -139,7 +139,7 @@ Special args can be the following:
 
     if arg1 == "-n" and len(sys.argv) > 2:  # New file
         # Set the name of the file to override
-        file_to_override: str = f"{sys.argv[2]}{'.gol' if sys.argv[2][-4:] != '.gol' else ''}"
+        file_to_override: str = add_extension(sys.argv[2])
         if input(f"""If the file doesn't exist yet, a new one will be created.
 Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lower() == "y":
             print()
@@ -201,6 +201,7 @@ def display_welcome() -> None:
     Also read the README.md file for more information.
     This game looks and works best in the new windows terminal application
         (the default terminal app for Windows 11)
+    Try to pinch to zoom out for more cells in the simulation.
 """)
         input("Press [Enter] to continue to the game.")
     os.system("cls")
@@ -230,8 +231,7 @@ def get_start_board() -> list[list[bool]]:
             print(f"{Fore.RED}ERROR: {Fore.RESET}File invalid. Try again with another file.")
             if input("Would you like to delete the file? [y/n] ").lower() == "y":
                 # Delete invalid file
-                if filename[-4:] != ".gol":
-                    filename += ".gol"
+                filename = add_extension(filename)
                 # Look in both the boards and the favourites folder
                 os.remove(os.path.join(check_origin(filename), filename))
                 print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}{filename} deleted successfully")
@@ -322,8 +322,7 @@ def import_from_file(filepath: str) -> list[list[bool]]:
     line: str = "PLACEHOLDER"
 
     # Add file extension if it wasn't provided
-    if filepath[-4:] != ".gol":
-        filepath += ".gol"
+    filepath = add_extension(filepath)
 
     with open(os.path.join(check_origin(filepath), filepath), "r", encoding="utf-8") as fp:
         print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File found, initializing...")
@@ -363,6 +362,11 @@ def check_validity(board: list[list[bool]]) -> bool:
     return diff_cols == 1
 
 
+def add_extension(filename: str) -> str:
+    """Add the .gol extension to a file if not present already."""
+    return filename + ".gol" if filename[-4:] != ".gol" else ""
+
+
 def manually_create_level(filename: str="") -> list[list[bool]]:
     """Create a level according to user specifications.
 
@@ -375,11 +379,7 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
     # Set up file-related stuff
     if filename:  # Do only if config should be saved in a file
         # Add file extension if not present
-        if filename[-4:] != ".gol":
-            filename += ".gol"
-
-        # If directory doesn't exist yet, create it
-        os.makedirs(BOARDS_PATH, exist_ok=True)
+        filename = add_extension(filename)
 
         if check_origin(filename) == FAVOURITES_PATH:
             print(f"A file called \"{filename}\" is already in your favourites.")
@@ -389,16 +389,15 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
         # Open file to save config in
         fp = open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8")
 
-
     print()
     # Get parameters for the board from the user
     while True:
-        width: str = input("Enter board width (chars): ")
+        width: str = input("Enter board width (cells): ")
         if not width.isnumeric() or int(width) <= 1:
             print("Minimum value is 2. Please only write numbers\n")
             continue
 
-        height: str = input("Enter board height (chars): ")
+        height: str = input("Enter board height (cells): ")
         if not height.isnumeric() or int(height) <= 1:
             print("Minimum value is 2. Please only write numbers\n")
             continue
@@ -426,7 +425,7 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
     if filename: # Again, only if saved in file
         print(f"\n{Fore.GREEN}SUCCESS: {Fore.RESET}File created successfully!")
 
-    fp.close()
+    if filename: fp.close()
     return local_board
 
 
@@ -532,24 +531,13 @@ def end_game(count: int = -1) -> None:
     sys.exit(0)
 
 
-def check_starting_dir():
-    """Check the starting directory.
-    
-    If the program isn't started from the "programs" directory,
-    all the relative paths used in the program will no longer work.
-    
-    If started incorrectly, notify the user of the error and close the program immediately.
+def set_dir_and_os():
+    """Set the starting directory and check that the program is run on Windows.
 
-    Also check the operating system, as only windows is supported at the time.
+    Latter is due to the fact that the program can only run on windows.
     """
-    if os.getcwd()[-7:] != "program":
-        print(f"{Fore.RED}ERROR:{Fore.RESET} You seem to have started the program from "
-          "another directory than the \"program\" directory this project came with.\nPlease "
-          "restart the game from the proper directory, as the game can't access important "
-          "data (like your saved boards) otherwise.\n\n"
-          "Please refer to the README.md file for intructions on the proper installation "
-          "and usage of this program.")
-        sys.exit(1)
+    # Set working directory to the program directory
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
     if os.name != "nt":
         print(f"{Fore.RED}ERROR:{Fore.RESET} You don't seem to be running a Windows device.\n"
@@ -558,16 +546,19 @@ def check_starting_dir():
         sys.exit(2)
 
 
-# "Pre-flight check" and constant definitions
-check_starting_dir()
-BOARDS_PATH: str = os.path.join("..", "boards")  # Path to where the boards are stored
-FAVOURITES_PATH: str = os.path.join("..", "favourites")  # Favourite boards
+set_dir_and_os()
+# Path to where the boards are stored
+BOARDS_PATH: str = os.path.abspath(os.path.join("..", "boards"))
+# Favourite boards
+FAVOURITES_PATH: str = os.path.abspath(os.path.join("..", "favourites"))
 
+# Make necessary directories if they don't exist already
+os.makedirs(BOARDS_PATH, exist_ok=True)
+os.makedirs(FAVOURITES_PATH, exist_ok=True)
+
+# Only run the following if program is called explicitly
 if __name__ == "__main__":
     os.system("cls")
-    # Make necessary directories
-    os.makedirs(BOARDS_PATH, exist_ok=True)
-    os.makedirs(FAVOURITES_PATH, exist_ok=True)
 
     handle_special_args()  # Check special args first
     display_welcome()  # Only if no special args were called
@@ -585,4 +576,4 @@ if __name__ == "__main__":
         print_board(global_board)
         last_board = global_board
         global_board = update_board(global_board, num_generations)
-        sleep(1)
+        sleep(0.25)
