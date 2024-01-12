@@ -1,3 +1,0 @@
-fill in this file as soon as the project is finished using the command below:
-
-pipreqs C:\Users\sparl\Programming\Python\Schule\PythonProjekt\GameOfLife_V2 --force
