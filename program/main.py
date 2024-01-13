@@ -6,8 +6,8 @@ import random
 from time import sleep
 from colorama import Back, Fore
 
-# TODO requirements.txt and include in readme instructions
 # TODO bring the board creator up to date
+# TODO let a command line arg specify which char is used for printing board
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
@@ -17,6 +17,21 @@ class FileInvalidError(Exception):
         "All characters must be printable and all lines must have the same length."):
         self.message = message
         super().__init__(self.message)
+
+
+def set_dir_and_os():
+    """Set the starting directory and check that the program is run on Windows.
+
+    Latter is due to the fact that the program can only run on windows.
+    """
+    # Set working directory to the program directory
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+    if os.name != "nt":
+        print(f"{Fore.RED}ERROR:{Fore.RESET} You don't seem to be running a Windows device.\n"
+              "This game is only supported on the Windows operating system. Please use a VM "
+              "or a Windows device to run this game.")
+        sys.exit(2)
 
 
 def check_origin(filename: str) -> str:
@@ -50,7 +65,7 @@ def handle_special_args() -> None:
 
     if arg1 == "-h":  # Help
         print("""
-Usage: py main.py [arg]
+Usage: py main.py [args]
 
 The first argument is either ONLY a filename (with or without extension)
 of a .gol board, or a special argument.
@@ -75,7 +90,7 @@ Special args can be the following:
         print("\n".join(boards))
         # Show absolute path of boards folder for easy access
         print(f"{Fore.RESET}\n{Fore.LIGHTBLACK_EX}"
-              f"Your boards are saved here: {os.path.abspath(BOARDS_PATH)}"
+              f"Your boards are saved here: {BOARDS_PATH}"
               f"{Fore.RESET}\n\n")
 
         print(f"Favourites:\n{Fore.LIGHTCYAN_EX}")
@@ -84,7 +99,7 @@ Special args can be the following:
         print("\n".join(boards))
         # Show absolute path of boards folder for easy access
         print(f"{Fore.RESET}\n{Fore.LIGHTBLACK_EX}"
-              f"Your favourites are saved here: {os.path.abspath(FAVOURITES_PATH)}"
+              f"Your favourites are saved here: {FAVOURITES_PATH}"
               f"{Fore.RESET}")
 
         sys.exit(0)
@@ -304,14 +319,15 @@ def generate_random_board(height: int = -1, width: int = -1) -> list[list[bool]]
     if (height, width) == (-1, -1):
         # Fill the entire screen
         terminal = os.get_terminal_size()
-        # Sometimes the size function returns one line too many
-        height = terminal.lines - 1
+        # Terminal rendering doesn't like fullscreen
+        height = terminal.lines - 2
         # One cell is 2 chars wide
         width = terminal.columns // 2
 
     for _ in range(height):
-        processed_input = [(random.random() <= 0.5) for _ in range(width)]
-        local_board.append(processed_input)
+        # Generate a line of bools
+        generated_line = [(random.random() <= 0.5) for _ in range(width)]
+        local_board.append(generated_line)
 
     return local_board
 
@@ -364,7 +380,7 @@ def check_validity(board: list[list[bool]]) -> bool:
 
 def add_extension(filename: str) -> str:
     """Add the .gol extension to a file if not present already."""
-    return filename + ".gol" if filename[-4:] != ".gol" else ""
+    return filename + (".gol" if filename[-4:] != ".gol" else "")
 
 
 def manually_create_level(filename: str="") -> list[list[bool]]:
@@ -373,59 +389,54 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
     If no filename is specified, it will only return the board.
     The new level will be saved in a .gol file as characters
     if a filename is specified.
+
+    Print a success message at the end if all worked well.
     """
     local_board: list[list[str]] = []
-
-    # Set up file-related stuff
     if filename:  # Do only if config should be saved in a file
-        # Add file extension if not present
         filename = add_extension(filename)
 
+    with open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8") as fp:
         if check_origin(filename) == FAVOURITES_PATH:
             print(f"A file called \"{filename}\" is already in your favourites.")
             filename = filename[:-4] + "(1)" + filename[-4:]  # Add ending (1) to filename
             print(f"A file called \"{filename}\" will be created instead.")
 
-        # Open file to save config in
-        fp = open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8")
+        print()
+        # Get parameters for the board from the user
+        while True:
+            width: str = input("Enter board width (cells): ")
+            if not width.isnumeric() or int(width) <= 1:
+                print("Minimum value is 2. Please only write numbers\n")
+                continue
 
-    print()
-    # Get parameters for the board from the user
-    while True:
-        width: str = input("Enter board width (cells): ")
-        if not width.isnumeric() or int(width) <= 1:
-            print("Minimum value is 2. Please only write numbers\n")
-            continue
+            height: str = input("Enter board height (cells): ")
+            if not height.isnumeric() or int(height) <= 1:
+                print("Minimum value is 2. Please only write numbers\n")
+                continue
 
-        height: str = input("Enter board height (cells): ")
-        if not height.isnumeric() or int(height) <= 1:
-            print("Minimum value is 2. Please only write numbers\n")
-            continue
+            height, width = int(height), int(width)
+            break
 
-        height, width = int(height), int(width)
-        break
+        print()
+        # Actually get and save input
+        for i in range(height):
+            # Format and write chars entered by user
+            line: list[str] = controlled_input(f"Enter line No. {i + 1}: ", width)
+            # Directly convert input to bool values
+            processed_input = [not char == " " for char in line]
+            local_board.append(processed_input)
 
-    print()
-    # Actually get and save input
-    for i in range(height):
-        # Format and write chars entered by user
-        line: list[str] = controlled_input(f"Enter line No. {i + 1}: ", width)
-        # Directly convert input to bool values
-        processed_input = [not char == " " for char in line]
-        local_board.append(processed_input)
+            if filename:
+                # Include in file if specified
+                fp.write("".join(line))
+                if i != height - 1:
+                    # Don't write last newline
+                    fp.write("\n")
 
-        if filename:
-            # Include in file if specified
-            fp.write("".join(line))
+        if filename: # Again, only if saved in file
+            print(f"\n{Fore.GREEN}SUCCESS: {Fore.RESET}File created successfully!")
 
-            if i != height - 1:
-                # Don't write last newline
-                fp.write("\n")
-
-    if filename: # Again, only if saved in file
-        print(f"\n{Fore.GREEN}SUCCESS: {Fore.RESET}File created successfully!")
-
-    if filename: fp.close()
     return local_board
 
 
@@ -453,7 +464,7 @@ def update_board(board: list[list[bool]], count: int) -> list[list[bool]]:
     """Update the board according to the rules of the Game of Life.
     
     Credit to Mizipor on StackOverflow for the non-blocking input.
-    Link to the discussion: https://stackoverflow.com/questions/2408560/non-blocking-console-input
+    Link to the thread: https://stackoverflow.com/questions/2408560/non-blocking-console-input
     """
     # Initialize a board where all cells are dead
     new_board: list[list[bool]] = [[False] * len(board[0]) for _ in range(len(board))]
@@ -492,7 +503,7 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
     Screen flickering can occur, but that can't be avoided while not fundamentally
     changing the structure of the program. This is due to how most terminal
     applications handle output, which is line by line. When the ouput doesn't
-    happen to ba synchronized with the monitor refresh rate, flickering can't be
+    happen to be synchronized with the monitor refresh rate, flickering can't be
     avoided.
     """
     # Initialize buffer to avoid screen flickering for bigger boards
@@ -504,13 +515,13 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
         for cell in row:
             # Color only if cell is alive
             if cell:
-                buffered_board += f"{Back.GREEN}{character} {Back.RESET}"
+                buffered_board += f"{Back.GREEN}{2 * character}{Back.RESET}"
             else:
-                buffered_board += f"{character} "
+                buffered_board += 2 * character
         buffered_board += "\n"  # New line after row
 
     # Print only at the end to minimize flickering
-    buffered_board = buffered_board[:-2]  # Remove last newline
+    # buffered_board = buffered_board[:-2]  # Remove last newline
     print(buffered_board)
 
 
@@ -531,21 +542,6 @@ def end_game(count: int = -1) -> None:
     sys.exit(0)
 
 
-def set_dir_and_os():
-    """Set the starting directory and check that the program is run on Windows.
-
-    Latter is due to the fact that the program can only run on windows.
-    """
-    # Set working directory to the program directory
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
-    if os.name != "nt":
-        print(f"{Fore.RED}ERROR:{Fore.RESET} You don't seem to be running a Windows device.\n"
-              "This game is only supported on the Windows operating system. Please use a VM "
-              "or a Windows device to run this game.")
-        sys.exit(2)
-
-
 set_dir_and_os()
 # Path to where the boards are stored
 BOARDS_PATH: str = os.path.abspath(os.path.join("..", "boards"))
@@ -562,18 +558,19 @@ if __name__ == "__main__":
 
     handle_special_args()  # Check special args first
     display_welcome()  # Only if no special args were called
+
     # Initial configuration comes either from the user or is randomly generated
-    global_board = get_start_board()
-
-
+    current_board: list[list[bool]] = get_start_board()
     # Avoid stuck screens that only include still lives
-    last_board:list[list[bool]] = []
-    num_generations = 0  # Keep track of how many generations passed
+    last_board: list[list[bool]] = []
+    num_generations: int = 0  # Keep track of how many generations passed
 
+    print("Starting simulation...")
+    sleep(1.5)
     # Main game loop
-    while last_board != global_board:
+    while last_board != current_board:
         num_generations += 1
-        print_board(global_board)
-        last_board = global_board
-        global_board = update_board(global_board, num_generations)
+        print_board(current_board)
+        last_board = current_board
+        current_board = update_board(current_board, num_generations)
         sleep(0.25)
