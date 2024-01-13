@@ -6,8 +6,7 @@ import random
 from time import sleep
 from colorama import Back, Fore
 
-# TODO bring the board creator up to date
-# TODO let a command line arg specify which char is used for printing board
+# TODO change README to show that pressing [Enter] stops the simulation
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
@@ -41,26 +40,30 @@ def check_origin(filename: str) -> str:
     else None
 
 
-def handle_special_args() -> None:
+def handle_special_args() -> str:
     """Handle special args that start with a hyphen (-)
 
-    Second argument will only be taken into account if first
-    argument is valid.
+    Return the background character for the board or exit the program directly.
+
+    Other arguments will only be taken into account if the
+    first argument is valid.
     A list of special arguments is found below:
 
     -h to show a help message explaining the args and usage
     -l to list the saved boards using the board creator (standalone program or module).
-    -c to delete all the files in the boards folder.
+    -e to erase all the files in the boards folder.
     -f to mark the board specified in the next argument as a favourite.
         Favourites are not affected by the -c argument.
         If the file is already in the favourites folder, offer to move it back.
     -n to create a new file with the specified name, even if a file with that name
         already exists.
     -d to delete the file, even if it is in the favourites folder.
+    -c to select the character used for the board background.
+        The -c arg is placed after the filename of a .gol board, if specified.
     """
     if len(sys.argv) == 1:
         # No args to handle
-        return
+        return " "
     arg1 = sys.argv[1]
 
     if arg1 == "-h":  # Help
@@ -74,13 +77,15 @@ A second argument will only be taken into account if paired with a valid special
 Special args can be the following:
 -h to show this help message.
 -l to list the saved boards using the board creator (standalone program or module).
--c to clear your boards folder.
+-e to erase your boards folder.
 -f to mark the board specified in the next argument as a favourite.
     Favourites are not affected by the -c argument.
     Also use this argument to move back a board from the favourites folder.
 -n to create a new file with the specified name, even if a file with that name
     already exists.
--d to delete the file, even if it is in your favourites folder.""")
+-d to delete the file, even if it is in your favourites folder.
+-c to select the character that fills the board as background.
+    The -c argument is to be placed AFTER the name of a .gol board, if specified""")
         sys.exit(0)
 
     if arg1 == "-l":  # List
@@ -104,7 +109,7 @@ Special args can be the following:
 
         sys.exit(0)
 
-    if arg1 == "-c":  # Clear
+    if arg1 == "-e":  # Erase
         if input("Are you sure you want to DELETE all of your saved boards?\n"
                  "Favourites will not be affected. [y/n] ").lower() == "y":
             for file in os.listdir(BOARDS_PATH):
@@ -117,7 +122,7 @@ Special args can be the following:
     if arg1 == "-f" and len(sys.argv) > 2:  # Favourite
         fav_file = f"{sys.argv[2]}{'.gol' if sys.argv[2][-4:] != '.gol' else ''}"
 
-        if fav_file in os.listdir(BOARDS_PATH):
+        if check_origin(fav_file) == BOARDS_PATH:
             # File is there, ready to move to favourites
             if input("Are you sure you want to move"
                      f" \"{fav_file}\" to favourites? [y/n] ").lower() == "y":
@@ -130,7 +135,7 @@ Special args can be the following:
                 print(f"{Fore.GREEN}SUCCESS: {Fore.RESET}File moved successfully.")
                 sys.exit(0)
 
-        if fav_file in os.listdir(FAVOURITES_PATH):
+        if check_origin(fav_file) == FAVOURITES_PATH:
             # File is already in favourites
             if input(f"\"{fav_file}\" is already in your favourites folder."
                      " Do you want to move it back to the other boards? [y/n] ").lower() == "y":
@@ -150,7 +155,7 @@ Special args can be the following:
         print(f"{Fore.RED}ERROR: {Fore.RESET}File \"{fav_file}\" "
                 "could not be found. No files were moved.")
 
-        sys.exit(0)
+        sys.exit(1)
 
     if arg1 == "-n" and len(sys.argv) > 2:  # New file
         # Set the name of the file to override
@@ -172,6 +177,27 @@ Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lo
             print(f"{Fore.RED}ERROR: {Fore.RESET}The filename \"{file_to_delete}\" "
                   "doesn't seem to exist, so nothing was deleted.")
         sys.exit(0)
+
+    if any("-c" == arg for arg in sys.argv) and len(sys.argv) > 2:  # Char
+        # TODO continue here
+        # Assign to the char after arg
+        print("args: ", sys.argv)
+        try:
+            board_filler = sys.argv[sys.argv.index("-c") + 1]
+        except IndexError:
+            board_filler = input("Please specify a charcter as a board filler. Enter here: ")
+
+        while len(board_filler) != 1:
+            board_filler = input("Exactly ONE character can fill the board. Enter new character: ")
+
+        return board_filler
+
+    if sys.argv[1][0] == "-":  # Invalid
+        print(f"{Fore.RED}ERROR: {Fore.RESET}"
+              "Invalid argument. Filenames cannot start with a hyphen. See -h for help.")
+        sys.exit(1)
+
+    return " "  # Default filler
 
 
 def display_welcome() -> None:
@@ -224,13 +250,13 @@ def display_welcome() -> None:
 
 def get_start_board() -> list[list[bool]]:
     """Handle and return a board based on the command line arguments."""
-    # Get filename to import from command line args
-    filename: str = sys.argv[1] if len(sys.argv) > 1 else ""
+    # Get filename to import from command line args, avoiding special args
+    filename: str = sys.argv[1] if len(sys.argv) > 1 and "-" not in sys.argv[1] else ""
 
     if filename:
         try:
             # Try to import the file from the specified filepath
-            local_board = import_from_file(sys.argv[1])
+            local_board = import_from_file(filename)
 
         except TypeError:
             # File doesn't exist
@@ -542,6 +568,7 @@ def end_game(count: int = -1) -> None:
     sys.exit(0)
 
 
+# Run the following even if module is imported
 set_dir_and_os()
 # Path to where the boards are stored
 BOARDS_PATH: str = os.path.abspath(os.path.join("..", "boards"))
@@ -556,7 +583,7 @@ os.makedirs(FAVOURITES_PATH, exist_ok=True)
 if __name__ == "__main__":
     os.system("cls")
 
-    handle_special_args()  # Check special args first
+    BACKGROUND_CHAR = handle_special_args()  # Check special args first
     display_welcome()  # Only if no special args were called
 
     # Initial configuration comes either from the user or is randomly generated
@@ -570,7 +597,7 @@ if __name__ == "__main__":
     # Main game loop
     while last_board != current_board:
         num_generations += 1
-        print_board(current_board)
+        print_board(current_board, BACKGROUND_CHAR)
         last_board = current_board
         current_board = update_board(current_board, num_generations)
         sleep(0.25)
