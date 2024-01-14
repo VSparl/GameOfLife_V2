@@ -18,7 +18,7 @@ The Game of Life is a cellular automaton devised by mathematician John Conway in
 
 4. **Running the Simulation**: If prompted, press `Enter` to start the simulation. The game will evolve through generations based on the rules stated above. Once the whole board either dies out (no more live cells) or the board only consists of  [still lives](https://en.wikipedia.org/wiki/Still_life_%28cellular_automaton%29), the game will stop automatically to avoid re-simulating the same scenario over and over again. Any oscillating structures will continue to be simulated, even if they repeat themselves.
 
-5. **Exiting**: To exit the game, press `Ctrl + C` to interrupt the program or follow on-screen instructions.
+5. **Exiting**: During a running simulation, press `Enter` to finish the simulation. Else, follow on-screen instructions or press `Ctrl + C` at any time to forcefully end the program (not recommended).
 
 ## History
 Conway's Game of Life is a cellular automaton devised by the British mathematician John Horton Conway in 1970. The game is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. The game made its first public appearance in the October 1970 issue of Scientific American, in Martin Gardner's "Mathematical Games" column. The game's fundamental simplicity and the emergence of complex patterns - despite those straightforward laws - have made it a popular subject of study in computer science, mathematics, and various other scientific fields.
