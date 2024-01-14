@@ -340,8 +340,8 @@ def generate_random_board(height: int = -1, width: int = -1) -> list[list[bool]]
         terminal = os.get_terminal_size()
         # Terminal rendering doesn't like fullscreen
         height = terminal.lines - 2
-        # One cell is 2 chars wide
-        width = terminal.columns // 2
+        # One cell is 2 chars wide, make place for separator
+        width = terminal.columns // 2 - 1
 
     for _ in range(height):
         # Generate a line of bools
@@ -537,10 +537,10 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
                 buffered_board += f"{Back.GREEN}{2 * character}{Back.RESET}"
             else:
                 buffered_board += 2 * character
-        buffered_board += "\n"  # New line after row
+        buffered_board += "|\n"  # Separator and newline after row
+    buffered_board += "-" * len(local_board[0]) * 2  # Add bottom separator
 
     # Print only at the end to minimize flickering
-    # buffered_board = buffered_board[:-2]  # Remove last newline
     print(buffered_board)
 
 
@@ -595,3 +595,5 @@ if __name__ == "__main__":
         last_board = current_board
         current_board = update_board(current_board, num_generations)
         sleep(0.25)
+
+    end_game(num_generations)
