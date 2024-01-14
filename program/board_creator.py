@@ -38,3 +38,5 @@ if origin is not None:
         filename = filename[:-4] + "(1)" + filename[-4:]  # Add (1) to name
         print(f"A file called \"{filename}\" will be created instead.")
         manually_create_level(filename)
+
+manually_create_level(filename)
