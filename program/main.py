@@ -1,4 +1,4 @@
-"""Read the README if you expected a docstring, I'm lazy."""
+"""Python terminal implementation of John Conway's Game of Life."""
 import sys
 import os
 import msvcrt
