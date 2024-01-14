@@ -178,14 +178,9 @@ Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lo
                   "doesn't seem to exist, so nothing was deleted.")
         sys.exit(0)
 
-    if any("-c" == arg for arg in sys.argv) and len(sys.argv) > 2:  # Char
-        # TODO continue here
+    if len(sys.argv) > 2 and (arg1 == "-c" or sys.argv[2] == "-c"):  # Char
         # Assign to the char after arg
-        print("args: ", sys.argv)
-        try:
-            board_filler = sys.argv[sys.argv.index("-c") + 1]
-        except IndexError:
-            board_filler = input("Please specify a charcter as a board filler. Enter here: ")
+        board_filler = sys.argv[sys.argv.index("-c") + 1]
 
         while len(board_filler) != 1:
             board_filler = input("Exactly ONE character can fill the board. Enter new character: ")
@@ -564,6 +559,7 @@ def end_game(count: int = -1) -> None:
     if count >= 0:
         print(f"Your game lasted {count} generation{"s" if count > 1 else ""}.")
     input("\nPress [Enter] to exit the game.")
+    os.system("cls")
     # Exit program with code 0
     sys.exit(0)
 
@@ -581,7 +577,7 @@ os.makedirs(FAVOURITES_PATH, exist_ok=True)
 
 # Only run the following if program is called explicitly
 if __name__ == "__main__":
-    os.system("cls")
+    print("-" * 20)  # Visual separator
 
     BACKGROUND_CHAR = handle_special_args()  # Check special args first
     display_welcome()  # Only if no special args were called
