@@ -6,8 +6,6 @@ import random
 from time import sleep
 from colorama import Back, Fore
 
-# TODO change README to show that pressing [Enter] stops the simulation
-
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
     def __init__(
