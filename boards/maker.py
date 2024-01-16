@@ -13,4 +13,8 @@ def append_to(filename, lines):
         for i in range(lines):
             fp.write(" " * length + ("\n" if i < lines - 1 else ""))
 
-append_to("glider_gun.gol", 50)
+if input("Mode [a/n]: ") == "a":
+    append_to(input("Filename (with extension): "), int(input("Lines: ")))
+
+else:
+    make_new(input("Filename (with extension): "), int(input("Height: ")), int(input("Width: ")))
