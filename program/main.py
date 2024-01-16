@@ -6,6 +6,8 @@ import random
 from time import sleep
 from colorama import Back, Fore
 
+# TODO add counter in print board at bottom
+
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
     def __init__(
@@ -58,11 +60,14 @@ def handle_special_args() -> str:
     -d to delete the file, even if it is in the favourites folder.
     -c to select the character used for the board background.
         The -c arg is placed after the filename of a .gol board, if specified.
+    -t to select the time to sleep inbetween printing boards. Default is 0.25 s.
     """
     if len(sys.argv) == 1:
         # No args to handle
-        return " "
+        return " ", 0.25
     arg1 = sys.argv[1]
+    finish = False
+    board_filler, timeout = " ", 0.25
 
     if arg1 == "-h":  # Help
         print("""
@@ -83,7 +88,11 @@ Special args can be the following:
     already exists.
 -d to delete the file, even if it is in your favourites folder.
 -c to select the character that fills the board as background.
-    The -c argument is to be placed AFTER the name of a .gol board, if specified""")
+    The -c argument is to be placed AFTER the name of a .gol board, if specified
+-t to select the amount of seconds between two generations. Default is 0.25 seconds.
+    Keep in mind that the actual
+    speed of generations still depends on the performance of your computer, especially
+    for big boards.""")
         sys.exit(0)
 
     if arg1 == "-l":  # List
@@ -176,21 +185,29 @@ Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lo
                   "doesn't seem to exist, so nothing was deleted.")
         sys.exit(0)
 
-    if len(sys.argv) > 2 and (arg1 == "-c" or sys.argv[2] == "-c"):  # Char
+    if len(sys.argv) > 2 and any(arg == "-c" for arg in sys.argv):  # Char
         # Assign to the char after arg
         board_filler = sys.argv[sys.argv.index("-c") + 1]
+
+        finish = True
 
         while len(board_filler) != 1:
             board_filler = input("Exactly ONE character can fill the board. Enter new character: ")
 
-        return board_filler
+    if len(sys.argv) > 2 and any(arg == "-t" for arg in sys.argv):  # Time
+        timeout = sys.argv[sys.argv.index("-t") + 1]
+        while not timeout.replace(".", "", 1).isdigit():
+            timeout = input("Enter a float or int as a board timeout: ")
 
-    if sys.argv[1][0] == "-":  # Invalid
+        timeout = float(timeout)
+        finish = True
+
+    if sys.argv[1][0] == "-" and not finish:  # Invalid
         print(f"{Fore.RED}ERROR: {Fore.RESET}"
               "Invalid argument. Filenames cannot start with a hyphen. See -h for help.")
         sys.exit(1)
 
-    return " "  # Default filler
+    return board_filler, timeout  # Default filler, default interval
 
 
 def display_welcome() -> None:
@@ -338,8 +355,8 @@ def generate_random_board(height: int = -1, width: int = -1) -> list[list[bool]]
     if (height, width) == (-1, -1):
         # Fill the entire screen
         terminal = os.get_terminal_size()
-        # Terminal rendering doesn't like fullscreen
-        height = terminal.lines - 2
+        # Terminal rendering doesn't like fullscreen, make place for generation count
+        height = terminal.lines - 3
         # One cell is 2 chars wide, make place for separator
         width = terminal.columns // 2 - 1
 
@@ -512,8 +529,8 @@ def update_board(board: list[list[bool]], count: int) -> list[list[bool]]:
     return new_board
 
 
-def print_board(local_board: list[list[bool]], character: str = " ") -> None:
-    """Print the current state of the board.
+def print_board(local_board: list[list[bool]], gen_count: int, character: str = " ") -> None:
+    """Print the current state of the board. Display the number of passed generations.
 
     Colorama is used to draw colored characters.
     Live cells are displayed as green.
@@ -538,7 +555,8 @@ def print_board(local_board: list[list[bool]], character: str = " ") -> None:
             else:
                 buffered_board += 2 * character
         buffered_board += "|\n"  # Separator and newline after row
-    buffered_board += "-" * len(local_board[0]) * 2  # Add bottom separator
+    buffered_board += "-" * len(local_board[0]) * 2 + "|"  # Add bottom separator
+    buffered_board += f"\nThis is generation No. {gen_count}."
 
     # Print only at the end to minimize flickering
     print(buffered_board)
@@ -577,7 +595,7 @@ os.makedirs(FAVOURITES_PATH, exist_ok=True)
 if __name__ == "__main__":
     print("-" * 20)  # Visual separator
 
-    BACKGROUND_CHAR = handle_special_args()  # Check special args first
+    BACKGROUND_CHAR, TIMEOUT = handle_special_args()  # Check special args first
     display_welcome()  # Only if no special args were called
 
     # Initial configuration comes either from the user or is randomly generated
@@ -591,9 +609,9 @@ if __name__ == "__main__":
     # Main game loop
     while last_board != current_board:
         num_generations += 1
-        print_board(current_board, BACKGROUND_CHAR)
+        print_board(current_board, num_generations, BACKGROUND_CHAR)
         last_board = current_board
         current_board = update_board(current_board, num_generations)
-        sleep(0.25)
+        sleep(TIMEOUT)
 
     end_game(num_generations)
