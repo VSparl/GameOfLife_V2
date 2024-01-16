@@ -573,7 +573,7 @@ def end_game(count: int = -1) -> None:
 ╚═════╝░╚═╝╚═╝░░░░░╚═╝░╚═════╝░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░╚═╝░╚════╝░╚═╝░░╚══╝  ░╚════╝░░░░╚═╝░░░╚══════╝╚═╝░░╚═╝
 """)
     if count >= 0:
-        print(f"Your game lasted {count} generation{"s" if count > 1 else ""}.")
+        print(f"Your game lasted {count} generation{'s' if count > 1 else ''}.")
     input("\nPress [Enter] to exit the game.")
     os.system("cls")
     # Exit program with code 0
