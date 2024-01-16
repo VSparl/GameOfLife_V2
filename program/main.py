@@ -6,7 +6,6 @@ import random
 from time import sleep
 from colorama import Back, Fore
 
-# TODO add counter in print board at bottom
 
 class FileInvalidError(Exception):
     """Custom error for .gol files that don't pass the validity check."""
