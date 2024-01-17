@@ -1,10 +1,16 @@
 """Python terminal implementation of John Conway's Game of Life."""
 import sys
 import os
-import msvcrt
 import random
 from time import sleep
-from colorama import Back, Fore
+try:
+    # msvcrt is Windows-only
+    import msvcrt
+    # colorama needs to be installed separately
+    from colorama import Back, Fore
+except ImportError:
+    print("Error importing modules. Please run setup.py from a windows environment.\n")
+    sys.exit(1)
 
 
 class FileInvalidError(Exception):
