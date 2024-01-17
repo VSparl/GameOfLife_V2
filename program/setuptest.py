@@ -1,5 +1,6 @@
 import os
 import sys
+import webbrowser
 
 # Install colorama if needed
 print("Checking for colorama install...\n")
@@ -12,6 +13,7 @@ except ImportError as ex:
     try:
         if input("Colorama not found. Do you want to install it? [y/n] ").lower() == "y":
             # User wants to install colorama through script, try to install it
+
             if os.system(f"{sys.executable} -m pip install colorama") != 0:
                 # os.system returned a non-zero exit code, something went wrong
                 raise RuntimeError("Error installing Colorama. Please install it manually.") from ex
@@ -21,7 +23,25 @@ except ImportError as ex:
         print(f"Error: {e}")
 
 # Navigate to the correct directory
+print("\nNow Navigate to the directory you wish to get to, enter [:q!] when you've reached it.")
+next_dir = "PLACEHOLDER"
 
-# something like using os.system() and just passing usr input directly until some specific thing is written (like ":q!" or sth)
-# then agian such a try-statement mess to try to clone the repo, but maybe git isn't installed! :(
-# in the end, maybe open the readme in a browser or something, might be nice idk I'm tired
+while True:
+    print()
+    print(f"Current directory: {os.path.abspath(os.getcwd())}")
+    next_dir = input("cd ")
+    if next_dir.strip("[]") == ":q!":
+        break
+    try:
+        os.chdir(next_dir)
+
+    except Exception as e:
+        print("Error:", e)
+
+print("\nAttempting to clone the GitHub repository...")
+clone_response = os.system("git clone https://github.com/VSparl/GameOfLife_V2")
+if clone_response != 0:
+    print("Something went wrong with git. Please refer to the README for a manual install.")
+
+# Open the readme in the default browser
+webbrowser.open("https://github.com/VSparl/GameOfLife_V2?tab=readme-ov-file#conways-game-of-life")
