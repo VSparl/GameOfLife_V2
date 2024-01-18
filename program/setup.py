@@ -1,6 +1,8 @@
 import os
 import sys
 import webbrowser
+import tkinter as tk
+from tkinter import filedialog
 
 # Install colorama if needed
 print("Checking for colorama install...\n")
@@ -22,21 +24,18 @@ except ImportError as ex:
     except Exception as e:
         print(f"Error: {e}")
 
-# Navigate to the correct directory
-print("\nNow Navigate to the directory you wish to get to, enter [:q!] when you've reached it.")
-next_dir = "PLACEHOLDER"
+# Navigate to the correct directory (got help from ChatGPT with the Tkinter part)
+if input("Do you want to clone the GitHub repository onto your machine?\n"
+         "You will be able to select your directory. [y/n] ").lower() != "y":
+    sys.exit(0)
 
-while True:
-    print()
-    print(f"Current directory: {os.path.abspath(os.getcwd())}")
-    next_dir = input("cd ")
-    if next_dir.strip("[]") == ":q!":
-        break
-    try:
-        os.chdir(next_dir)
+save_path = filedialog.askdirectory()
+if not save_path:
+    print("You pressed cancel, nothing will be cloned.\n"
+          "Run this program again to set up the repo.")
+    sys.exit(0)
 
-    except Exception as e:
-        print("Error:", e)
+os.chdir(save_path)
 
 print("\nAttempting to clone the GitHub repository...")
 clone_response = os.system("git clone https://github.com/VSparl/GameOfLife_V2")
