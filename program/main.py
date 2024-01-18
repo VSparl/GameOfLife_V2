@@ -561,7 +561,7 @@ def print_board(local_board: list[list[bool]], gen_count: int, character: str = 
                 buffered_board += 2 * character
         buffered_board += "|\n"  # Separator and newline after row
     buffered_board += "-" * len(local_board[0]) * 2 + "|"  # Add bottom separator
-    buffered_board += f"\nThis is generation No. {gen_count}."
+    buffered_board += f"\nGeneration No. {gen_count}"
 
     # Print only at the end to minimize flickering
     print(buffered_board)
