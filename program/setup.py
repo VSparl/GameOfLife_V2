@@ -1,7 +1,6 @@
 import os
 import sys
 import webbrowser
-import tkinter as tk
 from tkinter import filedialog
 
 # Install colorama if needed
