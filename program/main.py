@@ -3,13 +3,15 @@ import sys
 import os
 import random
 from time import sleep
+
 try:
     # msvcrt is Windows-only
     import msvcrt
     # colorama needs to be installed separately
     from colorama import Back, Fore
 except ImportError:
-    print("Error importing modules. Please run setup.py from a windows environment.\n")
+    print("Error importing modules. Please run setup.py from a windows environment."
+          "Also chceck if your Python version supports the msvcrt module.\n")
     sys.exit(1)
 
 
@@ -236,30 +238,32 @@ def display_welcome() -> None:
 ╚██████╔╝██║░░██║██║░╚═╝░██║███████╗  ╚█████╔╝██║░░░░░  ███████╗██║██║░░░░░███████╗
 ░╚═════╝░╚═╝░░╚═╝╚═╝░░░░░╚═╝╚══════╝  ░╚════╝░╚═╝░░░░░  ╚══════╝╚═╝╚═╝░░░░░╚══════╝
 """)
-    if input("Woud you like to check out the instructions? [y/n] ").lower() == "y":
-        print()
-        # Also check out -h argument for extended usage
-        print(f"""
+    if input("Woud you like to display the instructions? [y/n] ").lower() != "y":
+        os.system("cls")
+        return
+
+    print()
+    print(f"""
 {Back.LIGHTWHITE_EX}{Fore.BLACK}Overviev:{Back.RESET}{Fore.RESET}
-    The Game of Life is a cellular automaton devised by mathematician John Conway in 1970.
-    It's a zero-player game, meaning its evolution is determined by its initial state, with no further input.
-    The game is played on a grid of cells, each of which can be in one of two states: alive or dead.
-    Each generation is created by applying the game rules simultaneously to every cell on the board,
-    births and deaths occur simultaneously.
+The Game of Life is a cellular automaton devised by mathematician John Conway in 1970.
+It's a zero-player game, meaning its evolution is determined by its initial state, with no further input.
+The game is played on a grid of cells, each of which can be in one of two states: alive or dead.
+Each generation is created by applying the game rules simultaneously to every cell on the board,
+so that births and deaths occur simultaneously.
 
 {Back.LIGHTWHITE_EX}{Fore.BLACK}Rules:{Back.RESET}{Fore.RESET}
-    Births:    A dead cell with exactly three live neighbors becomes alive in the next generation.
-    Survivals: A live cell with two or three live neighbors survives to the next generation.
-    Deaths:    A live cell with fewer than two live neighbors dies due to underpopulation,
-                 and a live cell with more than three live neighbors dies due to overpopulation.
+Births:    A dead cell with exactly three live neighbors becomes alive in the next generation.
+Survivals: A live cell with two or three live neighbors survives to the next generation.
+Deaths:    A live cell with fewer than two live neighbors dies due to underpopulation,
+                and a live cell with more than three live neighbors dies due to overpopulation.
 
 {Back.LIGHTWHITE_EX}{Fore.BLACK}Additional information:{Back.RESET}{Fore.RESET}
-    Also read the README.md file for more information.
-    This game looks and works best in the new windows terminal application
-        (the default terminal app for Windows 11)
-    Try to pinch to zoom out for more cells in the simulation.
+Also read the README.md file for more information or launch the game with the "-h" command line argument.
+This game looks and works best in the new windows terminal application
+    (the default terminal app for Windows 11)
+Try to pinch to zoom out for more cells in the simulation when using an auto-generated board.
 """)
-        input("Press [Enter] to continue to the game.")
+    input("Press [Enter] to continue to the game.")
     os.system("cls")
 
 
