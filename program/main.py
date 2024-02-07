@@ -174,17 +174,31 @@ Special args can be the following:
 
     if arg1 == "-n" and len(sys.argv) > 2:  # New file
         # Set the name of the file to override
-        file_to_override: str = add_extension(sys.argv[2])
-        origin = check_origin(file_to_override)
-        if origin is not None:
-            # File exists already
+
+        overwrite_file: str = add_extension(sys.argv[2])
+        origin = check_origin(overwrite_file)
+        if origin == BOARDS_PATH:
+            # File exists already in boards folder
             if input("This file already exists. "
-                     f"Do you want to override \"{file_to_override}\"? "
+                     f"Do you want to override \"{overwrite_file}\"? "
                       "This will delete the old one. [y/n] ").lower() == "y":
                 print()
                 # Delete old file
-                os.remove(os.path.join(origin, file_to_override))
-                manually_create_level(file_to_override)
+                os.remove(os.path.join(origin, overwrite_file))
+                manually_create_level(overwrite_file)
+
+        elif origin == FAVOURITES_PATH:
+            # File exists already in favourites folder
+            print(f"A file called \"{overwrite_file}\" already exists in your favourites.")
+            overwrite_file = overwrite_file[:-4] + "(1)" + overwrite_file[-4:]  # Add (1) to name
+            print(f"A file called \"{overwrite_file}\" will be created instead.")
+
+            manually_create_level(overwrite_file)
+
+        else:
+            # File doesn't exist yet
+            manually_create_level(overwrite_file)
+
         sys.exit(0)
 
     if arg1 == "-d" and len(sys.argv) > 2:  # Delete
