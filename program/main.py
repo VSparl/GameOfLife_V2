@@ -41,7 +41,7 @@ def set_dir_and_os():
 
 
 def check_origin(filename: str) -> str:
-    """Check boards and favourites folder and return the location of the file."""
+    """Check boards and favourites folder and return the location of the file, or None if it doesn't exist."""
     return BOARDS_PATH if filename in os.listdir(BOARDS_PATH) \
     else FAVOURITES_PATH if filename in os.listdir(FAVOURITES_PATH) \
     else None
@@ -60,7 +60,7 @@ def handle_special_args() -> str:
     -l to list the saved boards using the board creator (standalone program or module).
     -e to erase all the files in the boards folder.
     -f to mark the board specified in the next argument as a favourite.
-        Favourites are not affected by the -c argument.
+        Favourites are not affected by the -e argument.
         If the file is already in the favourites folder, offer to move it back.
     -n to create a new file with the specified name, even if a file with that name
         already exists.
@@ -69,12 +69,13 @@ def handle_special_args() -> str:
         The -c arg is placed after the filename of a .gol board, if specified.
     -t to select the time to sleep inbetween printing boards. Default is 0.25 s.
     """
+    # Setup default values for -c and -t args
+    board_filler, timeout = " ", 0.25
     if len(sys.argv) == 1:
-        # No args to handle
-        return " ", 0.25
+        # No args to handle, return default values
+        return board_filler, timeout
     arg1 = sys.argv[1]
     finish = False
-    board_filler, timeout = " ", 0.25
 
     if arg1 == "-h":  # Help
         print("""
@@ -88,14 +89,14 @@ Special args can be the following:
 -h to show this help message.
 -l to list the saved boards using the board creator (standalone program or module).
 -e to erase your boards folder.
--f to mark the board specified in the next argument as a favourite.
-    Favourites are not affected by the -c argument.
-    Also use this argument to move back a board from the favourites folder.
--n to create a new file with the specified name, even if a file with that name
+-f [filename] to mark the board specified as a favourite.
+    Favourites are not affected by the -e argument.
+    Also use this argument to move a board back from the favourites folder.
+-n [filename] to create a new file with the specified name, even if a file with that name
     already exists.
--d to delete the file, even if it is in your favourites folder.
+-d [filename] to delete the file, even if it is in your favourites folder.
 -c to select the character that fills the board as background.
-    The -c argument is to be placed AFTER the name of a .gol board, if specified
+    The -c argument is to be placed AFTER the name of a .gol board, if specified.
 -t to select the amount of seconds between two generations. Default is 0.25 seconds.
     Keep in mind that the actual
     speed of generations still depends on the performance of your computer, especially
@@ -174,10 +175,16 @@ Special args can be the following:
     if arg1 == "-n" and len(sys.argv) > 2:  # New file
         # Set the name of the file to override
         file_to_override: str = add_extension(sys.argv[2])
-        if input(f"""If the file doesn't exist yet, a new one will be created.
-Are you sure you want to override the file \"{file_to_override}\"? [y/n] """).lower() == "y":
-            print()
-            manually_create_level(file_to_override)
+        origin = check_origin(file_to_override)
+        if origin is not None:
+            # File exists already
+            if input("This file already exists. "
+                     f"Do you want to override \"{file_to_override}\"? "
+                      "This will delete the old one. [y/n] ").lower() == "y":
+                print()
+                # Delete old file
+                os.remove(os.path.join(origin, file_to_override))
+                manually_create_level(file_to_override)
         sys.exit(0)
 
     if arg1 == "-d" and len(sys.argv) > 2:  # Delete
@@ -431,15 +438,11 @@ def add_extension(filename: str) -> str:
 def manually_create_level(filename: str="") -> list[list[bool]]:
     """Create a level according to user specifications.
 
-    If no filename is specified, it will only return the board.
-    The new level will be saved in a .gol file as characters
-    if a filename is specified.
-
+    The new level will be saved in a .gol file as characters.
     Print a success message at the end if all worked well.
     """
     local_board: list[list[str]] = []
-    if filename:  # Do only if config should be saved in a file
-        filename = add_extension(filename)
+    filename = add_extension(filename)
 
     with open(os.path.join(BOARDS_PATH, filename), "w", encoding="utf-8") as fp:
         if check_origin(filename) == FAVOURITES_PATH:
@@ -472,15 +475,12 @@ def manually_create_level(filename: str="") -> list[list[bool]]:
             processed_input = [not char == " " for char in line]
             local_board.append(processed_input)
 
-            if filename:
-                # Include in file if specified
-                fp.write("".join(line))
-                if i != height - 1:
-                    # Don't write last newline
-                    fp.write("\n")
+            fp.write("".join(line))
+            if i != height - 1:
+                # Don't write last newline
+                fp.write("\n")
 
-        if filename: # Again, only if saved in file
-            print(f"\n{Fore.GREEN}SUCCESS: {Fore.RESET}File created successfully!")
+        print(f"\n{Fore.GREEN}SUCCESS: {Fore.RESET}File created successfully!")
 
     return local_board
 
