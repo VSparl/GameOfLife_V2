@@ -29,8 +29,9 @@ The Game of Life is a cellular automaton devised by mathematician John Conway in
 ## Example boards
 There are some example boards included with the repository to help the user get an idea of some of the different structures in the Game of Life. There are 3 differend pre-made structures available by default:
  - **101** is a structure that repeats itself forever, forming patterns that resemble zeros and ones changing. Open this board using `py main.py 101` or `py main.py 101.gol`.
- - The **Gosper glider gun** is a structure that creates gliders while keeping itself intact. 
- - A **fishing hook** is a structure that "eats" gliders that collide with it. In the example files, a fishing hook is placed at the bottom of the glider gun file. To see the glider gun and the fishing hook in action, run `py main.py glider_gun` or `py main.py glider_gun.gol`.
+ - A **Glider** is a small structure "gliding" accross the screen, hence their name. It doesn't change direction, but it will fly forever. To see the glider flying until it hits the wall, run `py main.py glider` or `py main.py glider.gol`.
+ - **Gosper glider gun** is a structure that creates gliders while keeping itself intact. 
+ - **Fishing hook** is a structure that "eats" gliders that collide with it. In the example files, a fishing hook is placed at the bottom of the glider gun file. To see the glider gun and the fishing hook in action, run `py main.py glider_gun` or `py main.py glider_gun.gol`.
 
 ## History
 Conway's Game of Life is a cellular automaton devised by the British mathematician John Horton Conway in 1970. The game is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. The game made its first public appearance in the October 1970 issue of Scientific American, in Martin Gardner's "Mathematical Games" column. The game's fundamental simplicity and the emergence of complex patterns - despite those straightforward laws - have made it a popular subject of study in computer science, mathematics, and various other scientific fields.
