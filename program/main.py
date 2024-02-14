@@ -112,19 +112,21 @@ Special args can be the following:
         sys.exit(0)
 
     if arg1 == "-l":  # List
-        print(f"Saved boards:\n{Fore.LIGHTBLUE_EX}")
         boards: list[str] = os.listdir(BOARDS_PATH)
         boards.sort()
-        print("\n".join(boards))
+
+        print(f"Saved boards:\n{Fore.LIGHTBLUE_EX}")
+        print("\n".join(boards) if len(boards) > 0 else "[Empty]")
         # Show absolute path of boards folder for easy access
         print(f"{Fore.RESET}\n{Fore.LIGHTBLACK_EX}"
               f"Your boards are saved here: {BOARDS_PATH}"
               f"{Fore.RESET}\n\n")
 
-        print(f"Favourites:\n{Fore.LIGHTCYAN_EX}")
         boards: list[str] = os.listdir(FAVOURITES_PATH)
         boards.sort()
-        print("\n".join(boards))
+
+        print(f"Favourites:\n{Fore.LIGHTCYAN_EX}")
+        print("\n".join(boards) if len(boards) > 0 else "[Empty]")
         # Show absolute path of boards folder for easy access
         print(f"{Fore.RESET}\n{Fore.LIGHTBLACK_EX}"
               f"Your favourites are saved here: {FAVOURITES_PATH}"
@@ -318,7 +320,7 @@ def get_start_board() -> list[list[bool]]:
 
         except FileInvalidError:
             print(f"{Fore.RED}ERROR: {Fore.RESET}File invalid. Try again with another file.")
-            if input("Would you like to delete the file? [y/n] ").lower() == "y":
+            if input("Would you like to delete the corrupted file? [y/n] ").lower() == "y":
                 # Delete invalid file
                 filename = add_extension(filename)
                 # Look in both the boards and the favourites folder
