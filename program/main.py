@@ -3,10 +3,15 @@ import sys
 import os
 import random
 from time import sleep
-
 try:
     # msvcrt is Windows-only
     import msvcrt
+    MSVCRT_ERR = False
+except ImportError:
+    # Set error flag to true to avoid not running the program at all
+    MSVCRT_ERR = True
+
+try:
     # colorama needs to be installed separately
     from colorama import Back, Fore
 except ImportError:
@@ -41,7 +46,10 @@ def set_dir_and_os():
 
 
 def check_origin(filename: str) -> str:
-    """Check boards and favourites folder and return the location of the file, or None if it doesn't exist."""
+    """Check boards and favourites folder.
+
+    Return the location of the file, or None if it doesn't exist.
+    """
     return BOARDS_PATH if filename in os.listdir(BOARDS_PATH) \
     else FAVOURITES_PATH if filename in os.listdir(FAVOURITES_PATH) \
     else None
@@ -449,12 +457,23 @@ def add_extension(filename: str) -> str:
     return filename + (".gol" if filename[-4:] != ".gol" else "")
 
 
-def manually_create_level(filename: str="") -> list[list[bool]]:
+def manually_create_level(filename: str="") -> list[list[bool]]:    
     """Create a level according to user specifications.
 
     The new level will be saved in a .gol file as characters.
     Print a success message at the end if all worked well.
     """
+    if MSVCRT_ERR:
+        # Invalid OS or python version
+        print(f"""
+{Fore.RED}FATAL ERROR{Fore.RESET}
+This part of the program cannot be accessed either due to an invalid Python version
+or not running the game on a Windows environment.
+
+Please restart the game either on a Windows device
+or using Python 3.12 or 3.11 (the game is tested for those versions).""")
+        sys.exit(1)
+
     local_board: list[list[str]] = []
     filename = add_extension(filename)
 
@@ -543,7 +562,8 @@ def update_board(board: list[list[bool]], count: int) -> list[list[bool]]:
         # Entire board is dead, end the game with the amount of generations passed
         end_game(count)
 
-    if msvcrt.kbhit():
+    if not MSVCRT_ERR and msvcrt.kbhit():
+        # bkhit() check only works on Windows
         if msvcrt.getch() == b"\r":
             # User has pressed [Enter] to exit the game mid-simulation.
             end_game(count)
@@ -602,7 +622,6 @@ def end_game(count: int = -1) -> None:
     # Exit program with code 0
     sys.exit(0)
 
-
 # Run the following even if module is imported
 set_dir_and_os()
 # Path to where the boards are stored
@@ -629,6 +648,16 @@ if __name__ == "__main__":
 
     print("Starting simulation...")
     sleep(1.5)
+
+    if MSVCRT_ERR:
+        # Warn the user that a part of the functionality won't work
+        input("""
+Because you're either running an older python version or you're on a Unix OS, you can only
+interrupt the simulation using [Ctrl/Cmd + C] and not by pressing [Enter].
+Like this, you won't be able to see the end stats, the game will just \"crash\".
+
+Press [Enter] to continue.""")
+
     # Main game loop
     while last_board != current_board:
         num_generations += 1
