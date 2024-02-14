@@ -459,7 +459,7 @@ def add_extension(filename: str) -> str:
     return filename + (".gol" if filename[-4:] != ".gol" else "")
 
 
-def manually_create_level(filename: str="") -> list[list[bool]]:    
+def manually_create_level(filename: str="") -> list[list[bool]]:
     """Create a level according to user specifications.
 
     The new level will be saved in a .gol file as characters.
