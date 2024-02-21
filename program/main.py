@@ -38,12 +38,6 @@ def set_dir_and_os():
     # Set working directory to the program directory
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    if os.name != "nt":
-        print(f"{Fore.RED}ERROR:{Fore.RESET} You don't seem to be running a Windows device.\n"
-              "This game is only supported on the Windows operating system. Please use a VM "
-              "or a Windows device to run this game.")
-        sys.exit(2)
-
 
 def check_origin(filename: str) -> str:
     """Check boards and favourites folder.
