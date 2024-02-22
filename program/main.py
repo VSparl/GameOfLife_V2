@@ -30,13 +30,18 @@ class FileInvalidError(Exception):
         super().__init__(self.message)
 
 
-def set_dir_and_os():
+def set_dir_and_os() -> None:
     """Set the starting directory and check that the program is run on Windows.
 
     Latter is due to the fact that the program can only run on windows.
     """
     # Set working directory to the program directory
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
+def clear() -> None:
+    """Dynamic clear function, OS-dependent"""
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 def check_origin(filename: str) -> str:
@@ -247,7 +252,7 @@ def display_welcome() -> None:
     
     Credit to https://fsymbols.com/generators/carty/ for the ASCII art.
     """
-    os.system("cls")
+    clear()
     print("""
 ░░░░░██╗░█████╗░██╗░░██╗███╗░░██╗  ░█████╗░░█████╗░███╗░░██╗░██╗░░░░░░░██╗░█████╗░██╗░░░██╗██╗░██████╗
 ░░░░░██║██╔══██╗██║░░██║████╗░██║  ██╔══██╗██╔══██╗████╗░██║░██║░░██╗░░██║██╔══██╗╚██╗░██╔╝╚█║██╔════╝
@@ -264,7 +269,7 @@ def display_welcome() -> None:
 ░╚═════╝░╚═╝░░╚═╝╚═╝░░░░░╚═╝╚══════╝  ░╚════╝░╚═╝░░░░░  ╚══════╝╚═╝╚═╝░░░░░╚══════╝
 """)
     if input("Woud you like to display the instructions? [y/n] ").lower() != "y":
-        os.system("cls")
+        clear()
         return
 
     print()
@@ -289,7 +294,7 @@ This game looks and works best in the new windows terminal application
 Try to pinch to zoom out for more cells in the simulation when using an auto-generated board.
 """)
     input("Press [Enter] to continue to the game.")
-    os.system("cls")
+    clear()
 
 
 def get_start_board() -> list[list[bool]]:
@@ -584,7 +589,7 @@ def print_board(local_board: list[list[bool]], gen_count: int, character: str = 
     # Initialize buffer to avoid screen flickering for bigger boards
     buffered_board = ""
 
-    os.system("cls")  # Clear the terminal
+    clear()  # Clear the terminal
 
     for row in local_board:
         for cell in row:
@@ -614,7 +619,7 @@ def end_game(count: int = -1) -> None:
     if count >= 0:
         print(f"Your game lasted {count} generation{'s' if count > 1 else ''}.")
     input("\nPress [Enter] to exit the game.")
-    os.system("cls")
+    clear()
     # Exit program with code 0
     sys.exit(0)
 
