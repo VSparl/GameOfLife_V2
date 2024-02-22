@@ -1,14 +1,23 @@
 import os
 import sys
 import webbrowser
-from tkinter import filedialog
+
+if os.name != "nt":
+    # Program won't work on Unix systems
+    print("This setup script only works on Windows devices. Please get the repository from it's release page.")
+    webbrowser.open("https://github.com/VSparl/GameOfLife_V2/releases", new=2)
+    print("Check your browser for the release page.")
+    sys.exit(0)
+
+# Correct OS confirmed from here
+from tkinter import filedialog  # built-in for Windows
 from time import sleep
 
 def end():
     """End the program by opening the README page on GitHub."""
     # Open the readme in the default browser
     print("-" * 20)
-    print("All done! Check your browser for the GitHub README page of the project.")
+    print("Program finished! Check your browser for the GitHub README page of the project.")
     sleep(1)
     webbrowser.open("https://github.com/VSparl/GameOfLife_V2?tab=readme-ov-file#conways-game-of-life", new=2)
     sys.exit(0)
